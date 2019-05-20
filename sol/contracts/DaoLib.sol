@@ -23,10 +23,6 @@ library DaoLib {
     SellShares // Allow some shares to be minted for the current price
   }
 
-  struct SanitizationRules {
-    bool allowCallcode;
-  }
-
   struct Proposal {
     mapping(address => bool) voters; // Used with all
     uint yesVotes; // Used with all
@@ -34,7 +30,6 @@ library DaoLib {
     uint expiryBlock; // Used with all
     ProposalType proposalType; // Used with all
     RequirementType requirementType; // Used with: SetRequirementType
-    SanitizationRules sanitizationRules; // Used with: Execute, SetMethod
     uint amount; // Used with: Disburse, MintShares, SendEther
     address payable recipient; // Used with: MintShares, SendEther
     bytes32 callDataHash; // Used with: Execute, SetMethod, RunMethod
@@ -43,6 +38,16 @@ library DaoLib {
 
   function isProposalApproved (Proposal memory proposal, uint daoistCount)
   internal pure returns (bool) {
-    
+    RequirementType requirementType = proposal.requirementType;
+    return (
+      requirementType == RequirementType.Plurality
+        ? proposal.yesVotes > proposal.noVotes
+        : requirementType == RequirementType.Majority
+          ? proposal.yesVotes * 2 > daoistCount
+          : (
+              requirementType == RequirementType.SuperMajority &&
+              proposal.yesVotes * 2 > daoistCount * 3
+            )
+    );
   }
 }
