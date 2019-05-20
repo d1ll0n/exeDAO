@@ -1,0 +1,24 @@
+{
+  "name": "EXEdao-private",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/d1ll0n/EXEdao-private.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/d1ll0n/EXEdao-private/issues"
+  },
+  "homepage": "https://github.com/d1ll0n/EXEdao-private#readme",
+  "dependencies": {
+    "mkdirp": "^0.5.1",
+    "rimraf": "^2.6.3"
+  }
+}
