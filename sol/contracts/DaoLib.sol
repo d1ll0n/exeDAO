@@ -6,14 +6,16 @@ library DaoLib {
   }
 
   enum RequirementType {
+    Default,
     Plurality, // yes > no
     Majority, // yes > (memberCount / 2)
     SuperMajority // yes > (memberCount * 2/3)
   }
 
   enum ProposalType {
+    Default,
     Disburse, // Send profits to daoists
-    MintShares, // Give shares to new/existing daoist
+    MintShares, // Give shares to new/existing daoist - optionally require ether
     SendEther, // Send ether to an address
     Execute, // Run sanitized bytecode as delegatecall
     SetMethod, // Bind a method (deployed sanitized bytecode) to a string

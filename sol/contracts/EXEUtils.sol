@@ -40,4 +40,8 @@ library EXEUtils {
       return(start, i)
     }
   }
+
+  function killMethod() internal {
+    
+  }
 }
