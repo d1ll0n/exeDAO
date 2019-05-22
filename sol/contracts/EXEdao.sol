@@ -2,6 +2,7 @@ pragma solidity ^0.5.6;
 pragma experimental ABIEncoderV2;
 
 import "./DaoLib.sol";
+import "./EXElib.sol";
 import "./SafeMath.sol";
 import "./DividendSafe.sol";
 
@@ -12,9 +13,9 @@ import "./DividendSafe.sol";
 */
 
 contract EXEdao {
-  using SafeMath for uint256;
+  using SafeMath for uint;
   using SafeMath for uint128;
-  using SafeMath for uint64;
+  using EXElib for bytes;
 
   DividendSafe dividendSafe;
   uint public totalShares;
@@ -25,6 +26,7 @@ contract EXEdao {
   bytes32[] public proposalHashes;
   mapping(bytes32 => DaoLib.ProposalMeta) public proposals;
   mapping(uint => DaoLib.ProposalRequirement) public proposalRequirements;
+  DaoLib.ShareSale[] public shareSales;
 
   constructor() public {
     dividendSafe = new DividendSafe();
@@ -38,8 +40,12 @@ contract EXEdao {
     dividendSafe.disburseDividends.value(amount)(totalShares);
   }
 
-  function _sellShares(uint shares, uint price) internal {
-
+  function _sellShares(uint shares, uint128 price) internal {
+    shareSales.push(DaoLib.ShareSale({
+      expiryBlock: uint64(block.number.add(saleDuration)),
+      shares: uint128(shares),
+      price: price
+    }));
   }
 
   function _mintShares(address daoist, uint shares) internal {
@@ -51,12 +57,25 @@ contract EXEdao {
     recipient.transfer(amount);
   }
 
-  function _execute(bytes memory bytecode, bytes32 codeHash) internal {
-
+  function _execute(bytes memory bytecode) internal {
+    bytes memory sanitized = bytecode.sanitizeBytecode();
+    uint size = sanitized.length;
+    assembly {
+      let start := sanitized
+      let delegateTo := create(0, start, size)
+      let freeptr := mload(0x40)
+      let delegateSuccess := delegatecall(gas, delegateTo, 0, 0, 0, 0)
+      mstore(freeptr, 0x41c0e1b500000000000000000000000000000000000000000000000000000000)
+      let selfdestructSuccess := call(gas, delegateTo, 0, freeptr, 0x20, 0, 0)
+      if eq(and(delegateSuccess, selfdestructSuccess), 0) {
+        revert(0, 0)
+      }
+    }
   }
 
   function _setProposalRequirement(bytes memory typeInfo) internal {
-    DaoLib.ProposalType mProposalType = DaoLib.ProposalType(uint8(typeInfo[0]));
+    DaoLib.ProposalType mProposalType =
+      DaoLib.ProposalType(uint8(typeInfo[0]));
     DaoLib.ProposalRequirement mProposalRequirement
       = DaoLib.ProposalRequirement(uint8(typeInfo[1]));
     require(
@@ -138,7 +157,7 @@ contract EXEdao {
     if (proposalType == DaoLib.ProposalType.SendEther)
       _sendEther(proposalData.recipient, proposalData.value);
     if (proposalType == DaoLib.ProposalType.Execute)
-      _execute(proposalData.callData, proposalData.callDataHash);
+      _execute(proposalData.callData);
     if (proposalType == DaoLib.ProposalType.SetProposalRequirement)
       _setProposalRequirement(proposalData.callData);
 

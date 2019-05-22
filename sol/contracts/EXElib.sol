@@ -1,6 +1,6 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.5.6;
 
-library EXEUtils {
+library EXElib {
   function sanitizeBytecode (bytes memory bytecode)
   internal pure returns (bytes memory) {
     uint size = bytecode.length;

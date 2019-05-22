@@ -27,10 +27,16 @@ library DaoLib {
 
   struct ProposalData {
     uint8 proposalType; // Used with all
-    uint value; // Used with: Disburse, MintShares, SendEther
+    uint128 value; // Used with: Disburse, MintShares, SendEther
     address payable recipient; // Used with: MintShares, SendEther
     bytes32 callDataHash; // Used with: Execute
     bytes callData; // Used with: Execute
+  }
+
+  struct ShareSale {
+    uint128 shares;
+    uint128 price;
+    uint64 expiryBlock;
   }
 
   function isProposalApproved (
