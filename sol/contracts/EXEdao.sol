@@ -3,6 +3,7 @@ pragma experimental ABIEncoderV2;
 
 import "./DaoLib.sol";
 import "./SafeMath.sol";
+import "./DividendSafe.sol";
 
 /*
 ---TODO---
@@ -15,27 +16,57 @@ contract EXEdao {
   using SafeMath for uint128;
   using SafeMath for uint64;
 
-  mapping(string => address payable) public methodAddresses;
-  mapping(address => DaoLib.Daoist) public daoists; // shares held by each daoist
-  DaoLib.DaoMeta public daoMeta;
+  DividendSafe dividendSafe;
+  uint public totalShares;
+  uint public proposalDuration;
+  uint public saleDuration;
+
+  mapping(address => uint) public daoists; // shares held by each daoist
   bytes32[] public proposalHashes;
   mapping(bytes32 => DaoLib.ProposalMeta) public proposals;
   mapping(uint => DaoLib.ProposalRequirement) public proposalRequirements;
 
-  function requireCanVote(DaoLib.Daoist storage daoist) internal {
-    require(!daoist.suspended && daoist.shares > 0, "Can not vote.");
+  constructor() public {
+    dividendSafe = new DividendSafe();
   }
 
-  function createDisbursement(uint128 ) internal {
+  function daoistShares(address daoist) external view returns (uint) {
+    return daoists[daoist];
+  }
+
+  function _disburse(uint amount) internal {
+    dividendSafe.disburseDividends.value(amount)(totalShares);
+  }
+
+  function _sellShares(uint shares, uint price) internal {
 
   }
 
-  function _mintShares() internal {
+  function _mintShares(address daoist, uint shares) internal {
+    daoists[daoist] = daoists[daoist].add(shares);
+    totalShares = totalShares.add(shares);
+  }
+
+  function _sendEther(address payable recipient, uint amount) internal {
+    recipient.transfer(amount);
+  }
+
+  function _execute(bytes memory bytecode, bytes32 codeHash) internal {
 
   }
 
-  function _sendEther() internal {
-    
+  function _setProposalRequirement(bytes memory typeInfo) internal {
+    DaoLib.ProposalType mProposalType = DaoLib.ProposalType(uint8(typeInfo[0]));
+    DaoLib.ProposalRequirement mProposalRequirement
+      = DaoLib.ProposalRequirement(uint8(typeInfo[1]));
+    require(
+      mProposalType != DaoLib.ProposalType.SetProposalRequirement &&
+      mProposalType != DaoLib.ProposalType.Default &&
+      mProposalRequirement != DaoLib.ProposalRequirement.Default,
+      "Invalid types."
+    );
+    proposalRequirements[uint8(mProposalType)] = mProposalRequirement;
+
   }
 
   function hashProposal(DaoLib.ProposalData memory proposal)
@@ -46,42 +77,71 @@ contract EXEdao {
     );
     return keccak256(
       abi.encodePacked(
-        proposal.proposalType, proposal.amount, proposal.recipient,
-        proposal.callDataHash, proposal.method
+        proposal.proposalType, proposal.value,
+        proposal.recipient, proposal.callDataHash
       )
     );
   }
 
   function submitProposal(DaoLib.ProposalData calldata proposal)
   external payable {
-    DaoLib.Daoist storage daoist = daoists[msg.sender];
-    requireCanVote(daoist);
+    uint shares = daoists[msg.sender];
+    require(shares > 0, "Not a daoist.");
+    require(
+      DaoLib.ProposalType(proposal.proposalType) != DaoLib.ProposalType.Default, "Invalid proposal type");
     bytes32 proposalHash = hashProposal(proposal);
     require(proposals[proposalHash].yesVotes == 0, "Proposal exists.");
     proposals[proposalHash] = DaoLib.ProposalMeta({
-      expiryBlock: uint64(block.number + daoMeta.proposalDuration),
-      yesVotes: daoist.shares,
+      expiryBlock: uint64(block.number + proposalDuration),
+      yesVotes: uint128(shares),
       noVotes: 0
     });
     proposals[proposalHash].voters[msg.sender] = true;
     proposalHashes.push(proposalHash);
-    daoMeta.lastProposalBlock = uint64(block.number);
-    daoist.lastVoteBlock = uint64(block.number);
   }
 
   function voteProposal(uint proposalIndex, bool vote) external {
-    DaoLib.Daoist storage daoist = daoists[msg.sender];
-    requireCanVote(daoist);
+    uint shares = daoists[msg.sender];
+    require(shares > 0, "Not a daoist.");
     DaoLib.ProposalMeta storage proposal = proposals[proposalHashes[proposalIndex]];
     require(proposal.yesVotes > 0, "Proposal not open");
-    require(!proposal.voters[msg.sender], "Daoist already voted");
-    if (vote) proposal.yesVotes += daoist.shares;
-    else proposal.noVotes += daoist.shares;
-    daoist.lastVoteBlock = uint64(block.number);
+    require(!proposal.voters[msg.sender], "Duplicate vote");
+    if (vote) proposal.yesVotes = uint128(proposal.yesVotes.add(shares));
+    else proposal.noVotes = uint128(proposal.noVotes.add(shares));
   }
 
-  function processProposal(uint proposalIndex, DaoLib.ProposalData calldata proposal) external {
-    
+  function processProposal(uint proposalIndex, DaoLib.ProposalData calldata proposalData) external {
+    bytes32 proposalHash = hashProposal(proposalData);
+    require(proposalHashes[proposalIndex] == proposalHash, "Bad proposal hash");
+    DaoLib.ProposalMeta storage proposal = proposals[proposalHash];
+    require(proposal.yesVotes > 0, "Proposal not open");
+    DaoLib.ProposalType proposalType = DaoLib.ProposalType(proposalData.proposalType);
+    DaoLib.ProposalRequirement requirement = proposalRequirements[proposalData.proposalType];
+    require(
+      DaoLib.isProposalApproved(
+        requirement, proposal.yesVotes,
+        proposal.noVotes, totalShares
+      ), "Not approved."
+    );
+    require(
+      proposalData.callData.length == 0 ||
+      keccak256(abi.encodePacked(proposalData.callData)) == proposalData.callDataHash,
+      "Bad callData hash"
+    );
+    proposal.yesVotes = 0;
+    if (proposalType == DaoLib.ProposalType.Disburse)
+      _disburse(proposalData.value);
+    if (proposalType == DaoLib.ProposalType.SellShares)
+      _sellShares(uint(proposalData.callDataHash), proposalData.value);
+    if (proposalType == DaoLib.ProposalType.MintShares)
+      _mintShares(proposalData.recipient, proposalData.value);
+    if (proposalType == DaoLib.ProposalType.SendEther)
+      _sendEther(proposalData.recipient, proposalData.value);
+    if (proposalType == DaoLib.ProposalType.Execute)
+      _execute(proposalData.callData, proposalData.callDataHash);
+    if (proposalType == DaoLib.ProposalType.SetProposalRequirement)
+      _setProposalRequirement(proposalData.callData);
+
   }
 
 

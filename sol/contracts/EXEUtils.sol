@@ -40,10 +40,4 @@ library EXEUtils {
       return(start, i)
     }
   }
-
-  struct Extension {
-    address payable extAddress;
-    string[] methods;
-    mapping(string => )
-  }
 }
