@@ -1,11 +1,23 @@
 pragma solidity ^0.5.0;
 
 library DaoLib {
-  struct Daoist {
-    uint shares;
+  struct DaoMeta {
+    uint128 totalShares;
+    uint128 votingShares;
+    uint64 proposalDuration;
+    uint64 lastProposalBlock;
+    uint128 totalDividendPoints;
+    uint128 unclaimedDividendPoints;
   }
 
-  enum RequirementType {
+  struct Daoist {
+    uint128 shares;
+    uint64 lastVoteBlock;
+    bool suspended;
+    uint128 lastDividendPoints;
+  }
+
+  enum ProposalRequirement {
     Default,
     Plurality, // yes > no
     Majority, // yes > (memberCount / 2)
@@ -25,31 +37,32 @@ library DaoLib {
     SellShares // Allow some shares to be minted for the current price
   }
 
-  struct Proposal {
-    mapping(address => bool) voters; // Used with all
-    uint yesVotes; // Used with all
-    uint noVotes; // Used with all
-    uint expiryBlock; // Used with all
-    ProposalType proposalType; // Used with all
-    RequirementType requirementType; // Used with: SetRequirementType
-    uint amount; // Used with: Disburse, MintShares, SendEther
+  struct ProposalMeta {
+    mapping(address => bool) voters;
+    uint64 expiryBlock;
+    uint128 yesVotes;
+    uint128 noVotes;
+  }
+
+  struct ProposalData {
+    uint128 amount; // Used with: Disburse, MintShares, SendEther
+    uint8 proposalType; // Used with all
     address payable recipient; // Used with: MintShares, SendEther
     bytes32 callDataHash; // Used with: Execute, SetMethod, RunMethod
     string method; // Used with: SetMethod, RunMethod, DeleteMethod
   }
 
-  function isProposalApproved (Proposal memory proposal, uint daoistCount)
-  internal pure returns (bool) {
-    RequirementType requirementType = proposal.requirementType;
+  function isProposalApproved (
+    ProposalRequirement requirementType, ProposalMeta memory proposal, uint daoistCount
+  ) internal pure returns (bool) {
     return (
-      requirementType == RequirementType.Plurality
+      requirementType == ProposalRequirement.Plurality
         ? proposal.yesVotes > proposal.noVotes
-        : requirementType == RequirementType.Majority
+        : requirementType == ProposalRequirement.Majority
           ? proposal.yesVotes * 2 > daoistCount
-          : (
-              requirementType == RequirementType.SuperMajority &&
-              proposal.yesVotes * 2 > daoistCount * 3
-            )
+          : requirementType == ProposalRequirement.SuperMajority &&
+            proposal.yesVotes * 3 > daoistCount * 2
     );
   }
+
 }

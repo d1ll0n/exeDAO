@@ -41,7 +41,9 @@ library EXEUtils {
     }
   }
 
-  function killMethod() internal {
-    
+  struct Extension {
+    address payable extAddress;
+    string[] methods;
+    mapping(string => )
   }
 }
