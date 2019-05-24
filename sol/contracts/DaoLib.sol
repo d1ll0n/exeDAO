@@ -5,7 +5,8 @@ library DaoLib {
     Default,
     Plurality, // yes > no
     Majority, // yes > (memberCount / 2)
-    SuperMajority // yes > (memberCount * 2/3)
+    SuperMajority, // yes > (memberCount * 2/3)
+    NoRequirement
   }
 
   enum ProposalType {
@@ -21,22 +22,21 @@ library DaoLib {
   struct ProposalMeta {
     mapping(address => bool) voters;
     uint64 expiryBlock;
-    uint128 yesVotes;
-    uint128 noVotes;
+    uint64 yesVotes;
+    uint64 noVotes;
   }
 
   struct ProposalData {
     uint8 proposalType; // Used with all
     uint128 value; // Used with: Disburse, MintShares, SendEther
     address payable recipient; // Used with: MintShares, SendEther
-    bytes32 callDataHash; // Used with: Execute
     bytes callData; // Used with: Execute
   }
 
   struct ShareSale {
-    uint128 shares;
-    uint128 price;
     uint64 expiryBlock;
+    uint64 shares;
+    uint128 price;
   }
 
   function isProposalApproved (
@@ -52,4 +52,20 @@ library DaoLib {
     );
   }
 
+  function hasRequiredProperties(ProposalData memory proposal)
+  internal pure returns (bool) {
+    ProposalType proposalType = ProposalType(proposal.proposalType);
+    if (proposalType == ProposalType.Default) return false;
+    if (proposalType == ProposalType.Disburse) return proposal.value > 0;
+    if (proposalType == ProposalType.SellShares)
+      return proposal.callData.length == 8;
+    if (proposalType == ProposalType.MintShares || proposalType == ProposalType.SendEther)
+      return proposal.value > 0 && proposal.recipient != address(0);
+    if (proposalType == ProposalType.Execute) return proposal.callData.length > 0;
+    if (proposalType == ProposalType.SetProposalRequirement) {
+      uint8 pType = uint8(proposal.callData[0]);
+      uint8 pReq = uint8(proposal.callData[1]);
+      return pType != 0 && pReq != 0 && pType != 6;
+    }
+  }
 }
