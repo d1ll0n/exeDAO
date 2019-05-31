@@ -1,7 +1,7 @@
 pragma solidity ^0.5.6;
 
 library ExeLib {
-  function isPermissible (bytes memory bytecode)
+  function isPermissible (bytes memory bytecode, bool disallowDestruct)
   internal pure returns (bool permissible) {
     uint size = bytecode.length;
     assembly {
@@ -12,6 +12,7 @@ library ExeLib {
         case 0xf2 { break } // callcode
         case 0xf4 { break } // delegatecall
         case 0x55 { break } // sstore
+        case 0xff { if disallowDestruct { break } } // selfdestruct
         default {
           let isPush := and(lt(op, 0x80), gt(op, 0x5f))
           if eq(isPush, 0x1) { i := add(i, sub(0x21, sub(0x80, op))) }
@@ -27,7 +28,7 @@ library ExeLib {
       let start := add(bytecode, 0x20)
       let delegateTo := create(0, start, size)
       let freeptr := mload(0x40)
-      let delegateSuccess := delegatecall(gas, delegateTo, 0, 0, 0, 0)
+      let delegateSuccess := delegatecall(gas, delegateTo, 0, 0, freeptr, 0)
       mstore(freeptr, 0x41c0e1b500000000000000000000000000000000000000000000000000000000)
       let selfdestructSuccess := call(gas, delegateTo, 0, freeptr, 0x20, 0, 0)
       if eq(and(delegateSuccess, selfdestructSuccess), 0) {
