@@ -38,7 +38,7 @@ library ExeLib {
       returndatacopy(retptr, 0, retsize)
       let freeptr := add(retptr, retsize)
       mstore(freeptr, 0x41c0e1b500000000000000000000000000000000000000000000000000000000)
-      let selfdestructSuccess := call(gas, delegateTo, 0, freeptr, 0x20, 0, 0)
+      let selfdestructSuccess := call(gas, delegateTo, 0, freeptr, 0x20, freeptr, 0)
       let success := and(delegateSuccess, selfdestructSuccess)
       if success { return(retptr, retsize) }
       revert(0, 0)

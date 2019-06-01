@@ -21,8 +21,9 @@ contract Permissioned is Shared {
   function setProposalRequirement(bytes4 funcSig, DaoLib.ProposalRequirement requirement) external {
     require(
       !(requirement == DaoLib.ProposalRequirement.Default || funcSig == msg.sig),
-      "Invalid requirement type");
-    voteAndContinue();
+      "Invalid requirement type"
+    );
+    if (!voteAndContinue()) return;
     proposalRequirements[funcSig] = requirement;
   }
 
