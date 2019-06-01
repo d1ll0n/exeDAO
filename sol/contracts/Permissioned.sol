@@ -4,6 +4,10 @@ pragma experimental ABIEncoderV2;
 import "./DaoLib.sol";
 import "./Shared.sol";
 
+/**
+ * @title Permissioned
+ * @dev Configurable permissions for function execution.
+*/
 contract Permissioned is Shared {
   using DaoLib for DaoLib.Proposal;
 
@@ -18,6 +22,9 @@ contract Permissioned is Shared {
   event ProposalApproval(address indexed voter, bytes32 indexed proposalHash);
   event ProposalExpiration(bytes32 indexed proposalHash);
 
+  /**
+  * @dev Set the requirement for execution of a function.
+  */
   function setProposalRequirement(bytes4 funcSig, DaoLib.ProposalRequirement requirement) external {
     require(
       !(requirement == DaoLib.ProposalRequirement.Default || funcSig == msg.sig),
@@ -27,6 +34,9 @@ contract Permissioned is Shared {
     proposalRequirements[funcSig] = requirement;
   }
 
+  /**
+  * @dev Call submitOrVote() and return true if the proposal is approved, false if not.
+  */
   function voteAndContinue() internal returns (bool isApproved) {
     bytes32 proposalHash = keccak256(msg.data);
     (DaoLib.Proposal memory proposal, uint index) = submitOrVote(proposalHash);
@@ -40,6 +50,9 @@ contract Permissioned is Shared {
     }
   }
 
+  /**
+  * @dev Cancel a proposal if it has expired.
+  */
   function cancelProposal(bytes32 proposalHash) public {
     uint index = proposalIndices[proposalHash];
     DaoLib.Proposal storage proposal = proposals[index];
@@ -51,6 +64,9 @@ contract Permissioned is Shared {
     }
   }
 
+  /**
+  * @dev Create a proposal if it does not exist, vote on it otherwise.
+  */
   function submitOrVote(bytes32 proposalHash) public returns (DaoLib.Proposal memory, uint) {
     uint64 shares = getShares();
     uint index = proposalIndices[proposalHash];
