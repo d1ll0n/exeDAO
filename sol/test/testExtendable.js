@@ -26,24 +26,45 @@ before(async () => {
 })
 
 module.exports = describe('Extendable.sol', () => {
-  it('Should add a function', async () => {
-    contract = await deploy(accounts[0], 1000)
+  it('Should add 5+5 in an extension function', async () => {
+    const src = fs.readFileSync(path.join(__dirname, 'sol', 'Output.sol'), 'utf8')
+    const compiled = solc('Output', src)
+    const outputSig = getFunctionSignature('add(uint256,uint256)')
+    const ext = await deployExtension(accounts[0], compiled.bytecode, compiled.abi)
+    let payload = contract.methods.addFunctions(ext._address, [false], [outputSig]).encodeABI()
+    await web3.eth.sendTransaction({ from: accounts[0], data: payload, gas: 250000, to: contract._address })
+    payload = contract.methods.setProposalRequirement(outputSig, 1).encodeABI()
+    await web3.eth.sendTransaction({ from: accounts[0], data: payload, gas: 250000, to: contract._address })
+    payload = ext.methods.add(5, 5).encodeABI()
+    let receipt = await web3.eth.sendTransaction({ from: accounts[0], data: payload, gas: 250000, to: contract._address })
+    expect(parseInt(receipt.logs[2].data, 16)).to.eq(10)
   })
 
   describe('Opcode Restriction', () => {
-    it('Should add a function', async () => {
-      const src = fs.readFileSync(path.join(__dirname, 'sol', 'Output.sol'))
-      const compiled = solc('Output', src)
-      const outputSig = getFunctionSignature('add(uint,uint)')
+    it('Should disallow delegatecall', async () => {
+      const src = fs.readFileSync(path.join(__dirname, 'sol', 'Delegate.sol'), 'utf8')
+      const compiled = solc('Delegate', src)
       const ext = await deployExtension(accounts[0], compiled.bytecode, compiled.abi)
-
+      const outputSig = getFunctionSignature('add(uint256)')
+      let payload = contract.methods.addFunctions(ext._address, [false], [outputSig]).encodeABI()
+      await web3.eth.sendTransaction({ from: accounts[0], data: payload, gas: 250000, to: contract._address })
+        .then(() => {throw new Error('Should have thrown')})
+        .catch(err => {
+          expect(err.message).to.eq('Returned error: VM Exception while processing transaction: revert Bytecode not allowed')
+        })
     })
 
     it('Should disallow sstore', async () => {
-      const src = fs.readFileSync(path.join(__dirname, 'sol', 'SStore.sol'))
-      const { bytecode: ssBytes, abi: ssAbi } = solc('SStore', src)
-      const ext = await deployExtension(accounts[0], ssBytes, ssAbi)
-      
+      const src = fs.readFileSync(path.join(__dirname, 'sol', 'SStore.sol'), 'utf8')
+      const compiled = solc('SStore', src)
+      const ext = await deployExtension(accounts[0], compiled.bytecode, compiled.abi)
+      const outputSig = getFunctionSignature('add(uint256)')
+      let payload = contract.methods.addFunctions(ext._address, [false], [outputSig]).encodeABI()
+      await web3.eth.sendTransaction({ from: accounts[0], data: payload, gas: 250000, to: contract._address })
+        .then(() => {throw new Error('Should have thrown')})
+        .catch(err => {
+          expect(err.message).to.eq('Returned error: VM Exception while processing transaction: revert Bytecode not allowed')
+        })
     })
   })
 

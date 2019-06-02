@@ -22,8 +22,11 @@ library DaoLib {
   ) internal view returns (bool) {
     return (
       requirementType == ProposalRequirement.BasicMajority
-        ? proposal.yesVotes > proposal.noVotes &&
-          (block.number - proposal.expiryBlock) * 2 >= proposalDuration
+        ? (proposal.yesVotes * 2 > totalShares) ||
+          (
+            proposal.yesVotes > proposal.noVotes &&
+            (block.number - proposal.expiryBlock) * 2 >= proposalDuration
+          )
         : requirementType == ProposalRequirement.AbsoluteMajority
           ? proposal.yesVotes * 2 > totalShares
           : requirementType == ProposalRequirement.SuperMajority

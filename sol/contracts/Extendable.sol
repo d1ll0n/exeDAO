@@ -19,17 +19,19 @@ contract Extendable is Permissioned {
     address functionAddress, bool[] calldata isCall,
     bytes4[] calldata funcSigs
   ) external {
-    require(functionAddress.bytecodeAt().isPermissible(true), "Bytecode not allowed");
+    bool anyDelegates;
     require(funcSigs.length == isCall.length, "Inconsistent input");
     if (!voteAndContinue()) return;
     uint index = functions.length;
     for (uint i = 0; i < funcSigs.length; i++) {
-      functions[++index] = ExeLib.Function({
+      if (!anyDelegates && !isCall[i]) anyDelegates = true;
+      functions.push(ExeLib.Function({
         functionAddress: functionAddress,
         call: isCall[i]
-      });
-      functionIndices[funcSigs[i]] = index;
+      }));
+      functionIndices[funcSigs[i]] = index++;
     }
+    if (anyDelegates) require(functionAddress.bytecodeAt().isPermissible(true), "Bytecode not allowed");
   }
 
   function removeFunction(bytes4[] calldata funcSigs) external {
@@ -42,7 +44,10 @@ contract Extendable is Permissioned {
   }
 
   function () external payable {
-    address funcAddress = functions[functionIndices[msg.sig]].functionAddress;
-    if (funcAddress != address(0) && voteAndContinue()) funcAddress.delegateExecute();
+    ExeLib.Function memory _function = functions[functionIndices[msg.sig]];
+    if (_function.functionAddress != address(0) && voteAndContinue()) {
+      if (_function.call) _function.functionAddress.doCall();
+      else _function.functionAddress.delegateExecute();
+    }
   }
 }
