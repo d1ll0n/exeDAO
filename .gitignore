@@ -1,4 +1,18 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+report.*.json
+
+# Packages
 node_modules
-package-lock.json
+
+# Index files
+.DS_Store
+
+# Lock files
 yarn.lock
 
+# Built files
+/packages/*/dist
+/**/app-compressed.tar.gz⏎
