@@ -20,8 +20,8 @@ const styles = (theme) => ({
     minWidth: 120,
   },
   labelContainer: {
-    paddingRight: 0,
-    paddingLeft: 0,
+    paddingRight: 5,
+    paddingLeft: 5,
   },
 });
 
