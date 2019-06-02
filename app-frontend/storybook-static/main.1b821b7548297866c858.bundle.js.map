@@ -1,1 +1,0 @@
-{"version":3,"file":"main.1b821b7548297866c858.bundle.js","sources":["webpack:///./src/theme/colors/text.js"],"sourcesContent":["const primary = 'rgba(0, 0, 0, 0.87)';\nconst secondary = 'rgba(0, 0, 0, 0.6)';\nconst disabled = 'rgba(0, 0, 0, 0.38)';\n\nexport default { primary, secondary, disabled };\n"],"mappings":"AAIA","sourceRoot":""}

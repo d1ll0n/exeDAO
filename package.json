@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+	"prepare": "lerna run --stream --sort prepare"
   },
   "repository": {
     "type": "git",
@@ -16,8 +17,14 @@
   "bugs": {
     "url": "https://github.com/d1ll0n/EXEdao-private/issues"
   },
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "homepage": "https://github.com/d1ll0n/EXEdao-private#readme",
   "dependencies": {
+    "global": "^4.3.2",
+    "lerna": "^3.14.1",
     "mkdirp": "^0.5.1",
     "rimraf": "^2.6.3"
   }
