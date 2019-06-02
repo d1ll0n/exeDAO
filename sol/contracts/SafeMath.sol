@@ -1,4 +1,4 @@
-pragma solidity ^0.5.6;
+pragma solidity ^0.5.5;
 
 /**
  * @title SafeMath
@@ -14,7 +14,7 @@ library SafeMath {
     // See: https://github.com/OpenZeppelin/openzeppelin-solidity/pull/522
     if (a == 0) return 0;
     uint c = a * b;
-    require(c / a == b);
+    require(c / a == b, "SM: mul error");
     return c;
   }
 
@@ -23,7 +23,7 @@ library SafeMath {
   */
   function div(uint a, uint b) internal pure returns (uint) {
     // Solidity only automatically asserts when dividing by 0
-    require(b > 0);
+    require(b > 0, "SM: div error");
     uint c = a / b;
     return c;
   }
@@ -32,7 +32,7 @@ library SafeMath {
   * @dev Subtracts two unsigned integers, reverts on overflow (i.e. if subtrahend is greater than minuend).
   */
   function sub(uint a, uint b) internal pure returns (uint) {
-    require(b <= a);
+    require(b <= a, "SM: sub error");
     uint c = a - b;
     return c;
   }
@@ -42,7 +42,7 @@ library SafeMath {
   */
   function add(uint a, uint b) internal pure returns (uint) {
     uint c = a + b;
-    require(c >= a);
+    require(c >= a, "SM: add error");
     return c;
   }
 

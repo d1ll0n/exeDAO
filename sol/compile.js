@@ -21,9 +21,13 @@ const build = (fileName) => {
   }
   fs.writeFileSync(path.join(buildPath, `${fileName}.json`), JSON.stringify(out));
   console.log('saved to ' + path.join('build', `${fileName}.json`));
+  console.log(`bytecode size: ${out.bytecode.length} bytes`)
 }
 
 rimraf(buildPath)
   .then(() => mkdirp(buildPath))
-  .then(() => build('EXEdao'))
+  .then(() => build('Shared'))
+  .then(() => build('Permissioned'))
+  .then(() => build('Extendable'))
+  .then(() => build('exeDAO'))
   .catch((err) => console.error(err.stack || err.message || err));

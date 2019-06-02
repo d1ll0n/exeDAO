@@ -1,4 +1,4 @@
-pragma solidity ^0.5.6;
+pragma solidity ^0.5.5;
 pragma experimental ABIEncoderV2;
 
 import "./ExeLib.sol";
@@ -7,18 +7,13 @@ import "./Permissioned.sol";
 contract Extendable is Permissioned {
   using ExeLib for address;
   using ExeLib for bytes;
-  mapping(bytes4 => ExeLib.Function) public functions;
+  ExeLib.Function[] public functions;
+  mapping(bytes4 => uint) public functionIndices;
 
-  function safeExecute(bytes calldata bytecode) external {
-    require(bytecode.isPermissible(false), "Bytecode not allowed");
-    if (!voteAndContinue()) return;
-    bytecode.delegateExecute();
-  }
-
-  function unsafeExecute(bytes calldata bytecode) external {
-    if (!voteAndContinue()) return;
-    bytecode.delegateExecute();
-  }
+  constructor(
+    uint64 shares, bytes4[] memory funcSigs,
+    uint8[] memory requirements, uint32 _proposalDuration
+  ) public payable Permissioned(shares, funcSigs, requirements, _proposalDuration) {}
 
   function addFunctions(
     address functionAddress, bool[] calldata isCall,
@@ -27,26 +22,27 @@ contract Extendable is Permissioned {
     require(functionAddress.bytecodeAt().isPermissible(true), "Bytecode not allowed");
     require(funcSigs.length == isCall.length, "Inconsistent input");
     if (!voteAndContinue()) return;
+    uint index = functions.length;
     for (uint i = 0; i < funcSigs.length; i++) {
-      functions[funcSigs[i]] = ExeLib.Function({
+      functions[++index] = ExeLib.Function({
         functionAddress: functionAddress,
         call: isCall[i]
       });
+      functionIndices[funcSigs[i]] = index;
     }
   }
 
   function removeFunction(bytes4[] calldata funcSigs) external {
     for (uint i = 0; i < funcSigs.length; i++) {
       if (!voteAndContinue()) return;
-      functions[funcSigs[i]].functionAddress = address(0);
+      uint index = functionIndices[funcSigs[i]];
+      delete functions[index];
+      delete functionIndices[funcSigs[i]];
     }
   }
 
   function () external payable {
-    address functionAddress = functions[msg.sig].functionAddress;
-    if (functionAddress != address(0)) {
-      if (!voteAndContinue()) return;
-      functionAddress.delegateExecute();
-    }
+    address funcAddress = functions[functionIndices[msg.sig]].functionAddress;
+    if (funcAddress != address(0) && voteAndContinue()) funcAddress.delegateExecute();
   }
 }

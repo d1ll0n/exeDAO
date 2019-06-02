@@ -1,4 +1,10 @@
 const solc = require('solc')
+const path = require('path')
+const fs = require('fs')
+
+const findImports = (importPath) => ({
+  contents: fs.readFileSync(path.join(__dirname, 'contracts', importPath), 'utf8')
+})
 
 const easySolc = (contractName, src) => {
   const out = JSON.parse(solc.compile(JSON.stringify({
@@ -13,9 +19,12 @@ const easySolc = (contractName, src) => {
         '*': {
           '*': [ '*' ]
         }
+      },
+      optimizer: {
+        enabled: true
       }
     }
-  })));
+  }), findImports));
   if (out.errors && out.errors.length && out.errors.some(err => err.severity != 'warning')) {
     const toThrow = new Error('solc error, see "errors" property');
     toThrow.errors = out.errors;
