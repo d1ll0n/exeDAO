@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha ./sol/test --timeout 10000"
   },
   "repository": {
     "type": "git",
@@ -20,5 +20,11 @@
   "dependencies": {
     "mkdirp": "^0.5.1",
     "rimraf": "^2.6.3"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "ganache-cli": "^6.4.3",
+    "mocha": "^6.1.4",
+    "web3": "^1.0.0-beta.36"
   }
 }
