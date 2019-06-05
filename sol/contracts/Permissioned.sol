@@ -16,6 +16,7 @@ contract Permissioned is Shared {
   DaoLib.Proposal[] public proposals;
   mapping(bytes32 => uint) public proposalIndices;
   mapping(bytes4 => uint8) public proposalRequirements;
+  mapping(bytes32 => bytes32) public proposalIPFSHashes;
 
   event ProposalSubmission(address indexed submitter, bytes32 indexed proposalHash, uint32 votesCast, bool vote);
   event ProposalVote(address indexed voter, bytes32 indexed proposalHash, uint32 votesCast, bool vote);
@@ -89,6 +90,7 @@ contract Permissioned is Shared {
     if (isApproved) {
       delete proposals[index];
       delete proposalIndices[proposalHash];
+      if (proposalIPFSHashes[proposalHash] != 0) delete proposalIPFSHashes[proposalHash];
       emit ProposalApproval(msg.sender, proposalHash);
     }
     return isApproved;
@@ -101,6 +103,7 @@ contract Permissioned is Shared {
     if (proposal.expiryBlock <= block.number) {
       delete proposals[index];
       delete proposalIndices[proposalHash];
+      if (proposalIPFSHashes[proposalHash] != 0) delete proposalIPFSHashes[proposalHash];
       emit ProposalExpiration(proposalHash);
       if (index > lastExpiredProposal) lastExpiredProposal = uint32(index);
     }
@@ -108,9 +111,9 @@ contract Permissioned is Shared {
 
   /** @dev Create a proposal if it does not exist, vote on it otherwise. */
   function _submitOrVote(bytes32 proposalHash, bool vote)
-  internal returns (DaoLib.Proposal memory, uint) {
+  internal returns (DaoLib.Proposal memory, uint index) {
     uint32 shares = getShares();
-    uint index = proposalIndices[proposalHash];
+    index = proposalIndices[proposalHash];
     if (index == 0) {
       index = proposals.length;
       proposalIndices[proposalHash] = index;
@@ -135,5 +138,17 @@ contract Permissioned is Shared {
   function submitOrVote(bytes32 proposalHash, bool vote) external returns(uint, uint, uint) {
     (DaoLib.Proposal memory proposal,) = _submitOrVote(proposalHash, vote);
     return(proposal.yesVotes, proposal.noVotes, proposal.expiryBlock);
+  }
+
+  /// @notice Create a proposal and set an ipfs hash for finding data about it.
+  /// @dev The calldata for a proposal can be uploaded to IPFS with keccak sha256 as the hash algorithm,
+  /// making this function unnecessary for proposals where the input can easily be decoded. For proposals
+  /// to execute code or add extensions, however, it is useful to be able to share the raw code which compiles
+  /// to the contract bytecode for easy verification of what is going on without needing to audit the bytecode.
+  /// For extra security, the IPFS hash could point to ciphertext which only daoists can decrypt via some key exchange.
+  function submitWithIPFSHash(bytes32 proposalHash, bytes32 ipfsHash) external returns(uint index) {
+    require(proposalIndices[proposalHash] == 0, "Proposal already exists");
+    (,index) = _submitOrVote(proposalHash, true);
+    proposalIPFSHashes[proposalHash] = ipfsHash;
   }
 }
