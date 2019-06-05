@@ -3,9 +3,10 @@ const styles = (theme) => ({
     width: '100%',
     display: 'inline-flex',
     borderBottom: theme.palette.palette.primaryBlue,
+    paddingRight: 15,
+    paddingLeft: 15,
   },
   indicator: {
-    borderBottom: theme.palette.palette.primaryBlue,
     backgroundColor: theme.palette.palette.primaryBlue,
   },
   styledTab: {
