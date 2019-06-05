@@ -10,7 +10,8 @@ const styles = (theme) => ({
   },
   logo: {
     fontSize: 18,
-    letterSpacing: 0.5,
+    letterSpacing: 1,
+    color: theme.palette.palette.primaryBlue,
   },
   tabsWrapper: {
     flexGrow: 0,
@@ -21,7 +22,6 @@ const styles = (theme) => ({
   },
   labelContainer: {
     paddingRight: 5,
-    paddingLeft: 5,
   },
 });
 

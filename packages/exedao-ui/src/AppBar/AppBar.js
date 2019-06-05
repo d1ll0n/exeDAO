@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Toolbar, Typography, Tabs, Tab } from '@material-ui/core';
+import { Toolbar, Typography } from '@material-ui/core';
+import TabsNav from '../TabsNav';
 
 const AppBar = ({ classes, tabNames, activeTabIndex, handleChange }) => (
   <Toolbar disableGutters className={classes.toolbar}>
@@ -8,23 +9,11 @@ const AppBar = ({ classes, tabNames, activeTabIndex, handleChange }) => (
       <Typography className={classes.logo}>EXEDAO</Typography>
     </div>
     <div className={classes.tabsWrapper}>
-      <Tabs
-        value={activeTabIndex}
-        onChange={handleChange}
-        indicatorColor="primary"
-        variant="standard"
-      >
-        {tabNames.map((tabName, i) => (
-          <Tab
-            label={tabName}
-            key={i}
-            classes={{
-              root: classes.styledTab,
-              labelContainer: classes.labelContainer,
-            }}
-          />
-        ))}
-      </Tabs>
+      <TabsNav
+        tabNames={tabNames}
+        activeTabIndex={activeTabIndex}
+        handleChange={handleChange}
+      />
     </div>
   </Toolbar>
 );

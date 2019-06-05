@@ -34,4 +34,11 @@ const ProposalCard = ({
   );
 };
 
+ProposalCard.propTypes = {
+  classes: PropTypes.object.isRequired,
+  title: PropTypes.string.isRequired,
+  creationDate: PropTypes.string.isRequired,
+  timeLeft: PropTypes.string.isRequired,
+};
+
 export default ProposalCard;
