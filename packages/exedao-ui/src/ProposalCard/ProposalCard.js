@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {Fragment} from 'react';
 import PropTypes from 'prop-types';
 import { Typography, Paper, Tooltip } from '@material-ui/core';
 
@@ -15,7 +15,7 @@ const ProposalCard = ({
   completed,
 }) => {
   const getProposalInfo = () => {
-    if (isLoading) {
+    if (inProgress) {
       return null;
     }
     return (
@@ -29,7 +29,7 @@ const ProposalCard = ({
 
   return (
     <Paper className={classes.proposalObject}>
-      <div className={classes.titleContainer}>{getProposalInfo}</div>
+      <div className={classes.titleContainer}>{getProposalInfo()}</div>
     </Paper>
   );
 };
