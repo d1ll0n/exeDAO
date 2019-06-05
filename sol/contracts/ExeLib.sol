@@ -1,9 +1,14 @@
 pragma solidity ^0.5.5;
 
 library ExeLib {
-  struct Function {
-    address functionAddress;
-    bool call;
+  struct Extension {
+    address extensionAddress;
+    bool useDelegate;
+    string[] rawFunctions;
+  }
+
+  function signatureOf(string memory rawFunction) internal pure returns (bytes4) {
+    return bytes4(keccak256(bytes(rawFunction)));
   }
 
   function isPermissible (bytes memory bytecode, bool disallowDestruct)

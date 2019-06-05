@@ -7,47 +7,58 @@ import "./Permissioned.sol";
 contract Extendable is Permissioned {
   using ExeLib for address;
   using ExeLib for bytes;
-  ExeLib.Function[] public functions;
-  mapping(bytes4 => uint) public functionIndices;
+  using ExeLib for string;
+  ExeLib.Extension[] public extensions;
+  mapping(bytes4 => uint) public extensionFor;
 
   constructor(
-    uint64 shares, bytes4[] memory funcSigs,
-    uint8[] memory requirements, uint32 _proposalDuration
-  ) public payable Permissioned(shares, funcSigs, requirements, _proposalDuration) {}
-
-  function addFunctions(
-    address functionAddress, bool[] calldata isCall,
-    bytes4[] calldata funcSigs
-  ) external {
-    bool anyDelegates;
-    require(funcSigs.length == isCall.length, "Inconsistent input");
-    if (!voteAndContinue()) return;
-    uint index = functions.length;
-    for (uint i = 0; i < funcSigs.length; i++) {
-      if (!anyDelegates && !isCall[i]) anyDelegates = true;
-      functions.push(ExeLib.Function({
-        functionAddress: functionAddress,
-        call: isCall[i]
-      }));
-      functionIndices[funcSigs[i]] = index++;
-    }
-    if (anyDelegates) require(functionAddress.bytecodeAt().isPermissible(true), "Bytecode not allowed");
-  }
-
-  function removeFunction(bytes4[] calldata funcSigs) external {
-    for (uint i = 0; i < funcSigs.length; i++) {
-      if (!voteAndContinue()) return;
-      uint index = functionIndices[funcSigs[i]];
-      delete functions[index];
-      delete functionIndices[funcSigs[i]];
-    }
-  }
+    uint32 shares, uint32 _proposalDuration,
+    bytes4[] memory funcSigs, uint8[] memory requirements
+  ) public payable Permissioned(shares, _proposalDuration, funcSigs, requirements) {}
 
   function () external payable {
-    ExeLib.Function memory _function = functions[functionIndices[msg.sig]];
-    if (_function.functionAddress != address(0) && voteAndContinue()) {
-      if (_function.call) _function.functionAddress.doCall();
-      else _function.functionAddress.delegateExecute();
+    ExeLib.Extension memory extension = extensions[extensionFor[msg.sig]];
+    if (extension.extensionAddress != address(0) && voteAndContinue()) {
+      if (extension.useDelegate) extension.extensionAddress.delegateExecute();
+      else extension.extensionAddress.doCall();
+    }
+  }
+
+  function getExtensions() external view returns(ExeLib.Extension[] memory ret) {
+    return extensions;
+  }
+
+  function getExtension(uint index) external view
+  returns(ExeLib.Extension memory ret) {
+    ret = extensions[index];
+  }
+
+  function addExtension(
+    address extensionAddress, bool useDelegate,
+    string[] memory rawFunctions
+  ) public {
+    if (voteAndContinue()) {
+      if (useDelegate) require(extensionAddress.bytecodeAt().isPermissible(true), "Bytecde not allowed");
+      extensions.push(ExeLib.Extension({
+        extensionAddress: extensionAddress,
+        useDelegate: useDelegate,
+        rawFunctions: rawFunctions
+      }));
+      for (uint i = 0; i < rawFunctions.length; i++) {
+        extensionFor[rawFunctions[i].signatureOf()] = extensions.length - 1;
+      }
+    }
+  }
+
+  function removeExtension(uint extIndex) external {
+    if (voteAndContinue()) {
+      ExeLib.Extension memory ext = extensions[extIndex];
+      for (uint i = 0; i < ext.rawFunctions.length; i++) {
+        bytes4 funcSig = ext.rawFunctions[i].signatureOf();
+        delete extensionFor[funcSig];
+        if (proposalRequirements[funcSig] != 0) delete proposalRequirements[funcSig];
+      }
+      delete extensions[extIndex];
     }
   }
 }

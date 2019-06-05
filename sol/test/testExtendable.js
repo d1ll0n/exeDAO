@@ -11,10 +11,10 @@ let accounts, contract
 const getFunctionSignature = web3.eth.abi.encodeFunctionSignature
 const mintSig = getFunctionSignature('mintShares(address,uint64)')
 const setReqSig = '0x0eb3e6aa'
-const addSig = getFunctionSignature('addFunctions(address,bool[],bytes4[])')
+const addSig = getFunctionSignature('addExtension(address,bool,string[])')
 
-const deploy = (address, shares, mintReq = 1, setReqReq = 1, duration = 0) => new web3.eth.Contract(abi)
-  .deploy({ data: bytecode, arguments: [shares, [mintSig, setReqSig, addSig], [mintReq, setReqReq, 1], duration] })
+const deploy = (address, shares, duration = 0, mintReq = 1, setReqReq = 1) => new web3.eth.Contract(abi)
+  .deploy({ data: bytecode, arguments: [shares, duration, [mintSig, setReqSig, addSig], [mintReq, setReqReq, 1]] })
   .send({ from: address, gas: 4700000, value: 100000000000000 })
 
 const deployExtension = (address, src, interface) => new web3.eth.Contract(interface)
@@ -31,7 +31,7 @@ module.exports = describe('Extendable.sol', () => {
     const compiled = solc('Output', src)
     const outputSig = getFunctionSignature('add(uint256,uint256)')
     const ext = await deployExtension(accounts[0], compiled.bytecode, compiled.abi)
-    let payload = contract.methods.addFunctions(ext._address, [false], [outputSig]).encodeABI()
+    let payload = contract.methods.addExtension(ext._address, true, ['add(uint256,uint256)']).encodeABI()
     await web3.eth.sendTransaction({ from: accounts[0], data: payload, gas: 250000, to: contract._address })
     payload = contract.methods.setProposalRequirement(outputSig, 1).encodeABI()
     await web3.eth.sendTransaction({ from: accounts[0], data: payload, gas: 250000, to: contract._address })
@@ -46,7 +46,7 @@ module.exports = describe('Extendable.sol', () => {
       const compiled = solc('Delegate', src)
       const ext = await deployExtension(accounts[0], compiled.bytecode, compiled.abi)
       const outputSig = getFunctionSignature('add(uint256)')
-      let payload = contract.methods.addFunctions(ext._address, [false], [outputSig]).encodeABI()
+      let payload = contract.methods.addExtension(ext._address, true, ['add(uint256)']).encodeABI()
       await web3.eth.sendTransaction({ from: accounts[0], data: payload, gas: 250000, to: contract._address })
         .then(() => {throw new Error('Should have thrown')})
         .catch(err => {
@@ -59,7 +59,7 @@ module.exports = describe('Extendable.sol', () => {
       const compiled = solc('SStore', src)
       const ext = await deployExtension(accounts[0], compiled.bytecode, compiled.abi)
       const outputSig = getFunctionSignature('add(uint256)')
-      let payload = contract.methods.addFunctions(ext._address, [false], [outputSig]).encodeABI()
+      let payload = contract.methods.addExtension(ext._address, true, ['add(uint256)']).encodeABI()
       await web3.eth.sendTransaction({ from: accounts[0], data: payload, gas: 250000, to: contract._address })
         .then(() => {throw new Error('Should have thrown')})
         .catch(err => {
