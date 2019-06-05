@@ -1,6 +1,10 @@
 pragma solidity ^0.5.5;
 
 contract Output {
-  function add(uint a, uint b)
-  external pure returns (uint) { return a + b; }
+  event Added(uint c);
+  function add(uint256 a, uint256 b)
+  external returns (uint) {
+    emit Added(a+b);
+    return a + b;
+  }
 }
