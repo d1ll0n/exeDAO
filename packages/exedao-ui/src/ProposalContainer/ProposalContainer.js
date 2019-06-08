@@ -1,6 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Paper, Typography, Grid, LinearProgress } from '@material-ui/core';
+import {
+  Paper,
+  Typography,
+  Grid,
+  LinearProgress,
+  ButtonBase,
+} from '@material-ui/core';
 
 const getProposalHeader = (title, creationDate, timeLeft) => {
   return (
@@ -99,11 +105,13 @@ const ProposalContainer = ({
   handleClick,
 }) => {
   return (
-    <Paper className={classes.card} onClick={handleClick}>
-      {getProposalHeader(title, creationDate, timeLeft)}
-      {getProposalData(shares, tribute)}
-      {getVotesBar(classes, yesVotes, noVotes)}
-    </Paper>
+    <ButtonBase onClick={handleClick} className={classes.button}>
+      <Paper className={classes.card} elevation={0}>
+        {getProposalHeader(title, creationDate, timeLeft)}
+        {getProposalData(shares, tribute)}
+        {getVotesBar(classes, yesVotes, noVotes)}
+      </Paper>
+    </ButtonBase>
   );
 };
 
