@@ -96,9 +96,10 @@ const ProposalContainer = ({
   tribute,
   yesVotes,
   noVotes,
+  handleClick,
 }) => {
   return (
-    <Paper className={classes.card}>
+    <Paper className={classes.card} onClick={handleClick}>
       {getProposalHeader(title, creationDate, timeLeft)}
       {getProposalData(shares, tribute)}
       {getVotesBar(classes, yesVotes, noVotes)}
