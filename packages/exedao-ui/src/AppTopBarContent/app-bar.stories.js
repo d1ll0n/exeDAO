@@ -3,11 +3,11 @@ import { storiesOf } from '@storybook/react';
 import { action } from '@storybook/addon-actions';
 import { array, number } from '@storybook/addon-knobs';
 
-import AppBar from './index';
+import AppTopBarContent from './index';
 
-const categoryName = 'AssembledComponents/AppBar';
+const categoryName = 'AssembledComponents/AppTopBarContent';
 
-storiesOf(categoryName, module).add('AppBar', () => {
+storiesOf(categoryName, module).add('AppTopBarContent', () => {
   const handleChange = action('handleChange');
 
   const defaultProps = {
@@ -20,7 +20,7 @@ storiesOf(categoryName, module).add('AppBar', () => {
     <div
       style={{ paddingTop: '20px', height: '100vh', backgroundColor: 'gray' }}
     >
-      <AppBar {...defaultProps} />
+      <AppTopBarContent {...defaultProps} />
     </div>
   );
 });
