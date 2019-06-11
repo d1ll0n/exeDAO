@@ -10,10 +10,24 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "axios": "^0.19.0",
+    "base-x": "^3.0.5",
+    "cids": "^0.7.1",
+    "dotenv": "^8.0.0",
     "eth-sig-util": "^2.2.0",
+    "exedao.js": "^1.0.4",
+    "form-data": "^2.3.3",
+    "ganache-cli": "^6.4.3",
+    "kool-freelog": "^0.1.2",
+    "kool-makerpccall": "^0.1.0",
     "level": "^5.0.1",
+    "multihashing-async": "^0.7.0",
+    "querystring": "^0.2.0",
+    "request-promise-native": "^1.0.7",
     "socket.io": "^2.2.0",
     "web3": "^1.0.0-beta.55",
-    "web3-eth-abi": "^1.0.0-beta.55"
+    "web3-eth-abi": "^1.0.0-beta.55",
+    "xml2json": "^0.11.2",
+    "xmlhttprequest": "^1.8.0"
   }
 }

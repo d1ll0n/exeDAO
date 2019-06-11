@@ -16,3 +16,4 @@ yarn.lock
 # Built files
 /packages/*/dist
 /**/app-compressed.tar.gz⏎
+*.env
