@@ -26,7 +26,7 @@ library ExeLib {
         case 0xff { if disallowDestruct { permissible := 0 } } // selfdestruct
         default {
           let isPush := and(lt(op, 0x80), gt(op, 0x5f))
-          if eq(isPush, 0x1) { i := add(i, sub(0x21, sub(0x80, op))) }
+          if eq(isPush, 0x1) { i := add(i, sub(0x5f, op)) }
         }
       }
     }

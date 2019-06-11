@@ -1,15 +1,23 @@
 {
-  "name": "exedao-js",
-  "version": "1.0.0",
+  "name": "exedao.js",
+  "version": "1.0.6",
   "description": "",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha --timeout 10000"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "web3": "^1.0.0-beta.36"
+    "web3": "^1.0.0-beta.36",
+    "web3-eth-abi": "^1.0.0-beta.55"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "eslint": "^5.16.0",
+    "ganache-cli": "^6.4.3",
+    "mocha": "^6.1.4",
+    "solc": "^0.5.9"
   }
 }

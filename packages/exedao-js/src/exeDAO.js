@@ -1,15 +1,15 @@
 const Web3 = require('web3');
-const {abi} = require('./build/exeDAO');
+const {abi} = require('../build/abi');
 const {getFunctionInfo, votesNeeded} = require('./lib');
 
-module.exports = class ExeDao {
+module.exports = class exeDAO {
   constructor(provider, userAddress, contractAddress) {
     this.web3 = new Web3(provider);
     this.contract = new this.web3.eth.Contract(abi, contractAddress);
     this.address = userAddress;
     this.functionEncoders = {};
     Object.keys(this.contract.methods).map(method => {
-      this.functionEncoders[method] = (args) => this.contract.methods[method](args).encodeABI();
+      this.functionEncoders[method] = (...args) => this.contract.methods[method](...args).encodeABI();
     })
   }
 
@@ -19,7 +19,8 @@ module.exports = class ExeDao {
       const functions = extension.rawFunctions;
       for (let func of functions) {
         const {name, encodeCall} = getFunctionInfo(func);
-        this.functionEncoders[name] = encodeCall;
+        if (!this.functionEncoders[name]) this.functionEncoders[name] = encodeCall;
+        if (!this[name]) this[name] = (gas, value, ...args) => this.sendProposal(name, gas, value, ...args)
       }
     }
   }
@@ -60,24 +61,35 @@ module.exports = class ExeDao {
     return this.voteByHash(proposalHash, true, gas)
   }
 
+  hashProposal(method, ...args) {
+    const data = this.functionEncoders[method](...args);
+    return this.web3.utils.soliditySha3({ t: 'bytes', v: data });
+  }
   voteByHash(proposalHash, vote, gas) { return this.send('submitOrVote', gas, 0, proposalHash, vote); }
+  requestShares(shares) { return this.send('requestShares', shares); }
 
-  // VIEW FUNCTIONS
+  // getters
   getShares(address) { return this.call('daoists', address); }
   getTotalShares() { return this.call('totalShares'); }
   getProposalRequirement(funcsig) { return this.call('proposalRequirements', funcsig); }
-  getProposal(proposalHash) { return this.call('getProposalStatus', proposalHash); }
+  getProposal(proposalHash) { return this.call('getProposal', proposalHash); }
   getOpenProposals() { return this.call('getOpenProposals'); }
+  getProposalIpfsHash(proposalHash) { return this.call('proposalIPFSHashes', proposalHash); }
+  getBuyRequest(address) { return this.call('buyRequests', address); }
   
-  // PROPOSAL FUNCTIONS
+  // proposal functions
   mintShares(address, shares, gas) { return this.sendProposal('mintShares', gas, 0, address, shares); }
-  setMinimumBuyRequestValue(minValue) { return this.sendProposal('setMinimumRequestValue', gas, 0, minValue); }
+  setMinimumBuyRequestValue(minValue, gas) { return this.sendProposal('setMinimumRequestValue', gas, 0, minValue); }
   safeExecute(bytecode, gas) { return this.sendProposal('safeExecute', gas, 0, bytecode); }
   unsafeExecute(bytecode, gas) { return this.sendProposal('unsafeExecute', gas, 0, bytecode); }
   addExtension(address, useDelegate, functions, gas) {
     return this.sendProposal('addExtension', gas, 0, address, useDelegate, functions); 
   }
   removeExtension(address, gas) { return this.sendProposal('removeExtension', gas, 0, address); }
+  setProposalRequirement(sig, req, gas) { return this.sendProposal('setProposalRequirement', gas, 0, sig, req); }
+  submitWithIPFSHash(proposalHash, ipfsHash, gas) {
+    return this.sendProposal('submitWithIPFSHash', gas, 0, proposalHash, ipfsHash); 
+  }
 }
 
 /*
