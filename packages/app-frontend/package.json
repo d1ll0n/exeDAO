@@ -91,7 +91,7 @@
     "test": "jest",
     "clean": "rimraf dist logs && node prepare.js",
     "precommit": "lint-staged",
-    "start": "node ./index.js",
+    "start": "node ./src/index.js",
     "storybook": "start-storybook -p 9001 -c storybook/.storybook",
     "build-storybook": "build-storybook -c storybook/.storybook -o ./storybook/dist",
     "deploy-storybook": "npm run build-storybook && npm run storybook-deployer -- --existing-output-dir=./storybook/dist",

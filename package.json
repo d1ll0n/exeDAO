@@ -19,7 +19,9 @@
   },
   "private": true,
   "workspaces": [
-    "packages/*"
+    "packages/app-frontend",
+    "packages/exedao-theme",
+    "packages/exedao-ui"
   ],
   "homepage": "https://github.com/d1ll0n/EXEdao-private#readme",
   "dependencies": {
