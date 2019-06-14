@@ -21,23 +21,11 @@
   "workspaces": [
     "packages/app-frontend",
     "packages/exedao-theme",
-    "packages/exedao-ui"
+    "packages/exedao-ui",
+    "packages/exedao-js"
   ],
   "homepage": "https://github.com/d1ll0n/EXEdao-private#readme",
   "dependencies": {
-    "ethereumjs-abi": "^0.6.7",
-    "global": "^4.3.2",
-    "lerna": "^3.14.1",
-    "mkdirp": "^0.5.1",
-    "rimraf": "^2.6.3"
-  },
-  "devDependencies": {
-    "chai": "^4.2.0",
-    "ethereumjs-tx": "^1.3.7",
-    "ganache-cli": "^6.4.3",
-    "kool-makerpccall": "^0.1.0",
-    "mocha": "^6.1.4",
-    "web3": "^1.0.0-beta.36",
-    "web3-eth-abi": "^1.0.0-beta.55"
+    "lerna": "^3.14.1"
   }
 }
