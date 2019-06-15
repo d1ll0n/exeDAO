@@ -1,10 +1,9 @@
-const Web3 = require('web3');
 const {abi} = require('../build/abi');
 const {getFunctionInfo, votesNeeded} = require('./lib');
 
 module.exports = class exeDAO {
-  constructor(provider, userAddress, contractAddress) {
-    this.web3 = new Web3(provider);
+  constructor(web3, userAddress, contractAddress) {
+    this.web3 = web3;
     this.contract = new this.web3.eth.Contract(abi, contractAddress);
     this.address = userAddress;
     this.functionEncoders = {};

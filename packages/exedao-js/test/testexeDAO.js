@@ -11,8 +11,8 @@ before(async () => {
   accounts = await web3.eth.getAccounts();
   address = accounts[0];
   contract = await deploy(web3, address);
-  exedao = new exeDAO(provider, address, contract._address);
-  exedao2 = new exeDAO(provider, accounts[1], contract._address);
+  exedao = new exeDAO(web3, address, contract._address);
+  exedao2 = new exeDAO(web3, accounts[1], contract._address);
 })
 
 describe('exeDAO class', () => {
