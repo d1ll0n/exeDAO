@@ -1,5 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Switch, Route } from 'react-router-dom';
+import { MuiThemeProvider } from '@material-ui/core/styles';
+import theme from 'exedao-theme';
 import allRoutes from './client/routes';
 import Layout from './client/shared/containers/Layout';
 
@@ -25,16 +27,18 @@ const App = () => {
   const routes = getRoutes(allRoutes);
 
   return (
-    <BrowserRouter>
-      <div className="appContainer">
-        <Switch>
-          <Route
-            path="/"
-            render={(props) => <Layout {...props}>{routes}</Layout>}
-          />
-        </Switch>
-      </div>
-    </BrowserRouter>
+    <MuiThemeProvider theme={theme}>
+      <BrowserRouter>
+        <div className="appContainer">
+          <Switch>
+            <Route
+              path="/"
+              render={(props) => <Layout {...props}>{routes}</Layout>}
+            />
+          </Switch>
+        </div>
+      </BrowserRouter>
+    </MuiThemeProvider>
   );
 };
 
