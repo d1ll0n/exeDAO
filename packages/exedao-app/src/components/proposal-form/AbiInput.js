@@ -19,14 +19,12 @@ class AbiInput extends Component {
     e.nativeEvent.stopImmediatePropagation();
     const {target: {value}} = e;
     const {onChange, name} = this.props;
-    console.log(name, value)
-    console.log(this.isValid(value))
     if (this.isValid(value)) onChange(name, value)
   }
 
   isValid = (value) => {
     const {type} = this.props;
-    if (['int', 'address'].some(t => type.indexOf(t) > 0)) return isHexOrNumeric(value);
+    if (['int', 'address'].some(t => type.indexOf(t) > -1)) return isHexOrNumeric(value);
     else if (type.indexOf('fixed') > 0) return isFixed(value);
     return true;
   }

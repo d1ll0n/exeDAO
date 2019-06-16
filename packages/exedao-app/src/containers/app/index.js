@@ -19,7 +19,7 @@ class App extends Component {
   componentDidMount = () => {
     this.props.requestWeb3();
     this.props.goHome();
-    // this.props.goProp()
+    this.props.goProp()
   };
 
   renderHeader = () => <Navbar />;

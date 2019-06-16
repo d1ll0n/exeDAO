@@ -15,33 +15,6 @@ class Home extends Component {
     this.props.clearStore();
   };
 
-  doGetSig = async () => {
-    const {
-      account,
-      loading,
-      wallet,
-      owners,
-      classes,
-      web3,
-      usingInfura,
-    } = this.props;
-    if (!usingInfura) {
-      const msg = '0x8CbaC5e4d803bE2A3A5cd3DbE7174504c6DD0c1C';
-      const h = web3.utils.sha3(msg);
-      console.log('h ', h);
-      console.log('a ', account);
-      const sig = (await web3.eth.personal.sign(h, account)).slice(2);
-      const r = sig.slice(0, 64);
-      const s = sig.slice(64, 128);
-      const v = sig.slice(128, 130);
-      console.log(sig);
-      console.log('address - ', account);
-      console.log('hash - ', h);
-      console.log('signature - ', `0x${v}${r}${s}`);
-      console.log({ h, v, r, s });
-    }
-  };
-
   render() {
     const {
       account,
@@ -52,7 +25,6 @@ class Home extends Component {
       web3,
       usingInfura,
     } = this.props;
-    this.doGetSig();
     return (
       <Grid container alignItems="center" justify="center">
         <Box

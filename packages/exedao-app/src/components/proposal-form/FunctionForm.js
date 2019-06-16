@@ -40,8 +40,8 @@ export default class FunctionForm extends Component {
   }
 
   handleChange = (name, value) => {
-    console.log('ff ', name + value)
-    this.setState({values: {...this.state.values, [name]: value }})
+    const { values } = this.state;
+    this.setState({values: {...values, [name]: value }})
   }
 
   renderInput = ({name, type}, i) => <AbiInput
@@ -59,10 +59,11 @@ export default class FunctionForm extends Component {
 
   render() {
     const {abi: {name, inputs}} = this.props;
+    const {values} = this.state;
     return <Paper style={{ padding: 50 }}>
       <h3>{name}</h3>
       {this.renderInputs(inputs)}
-      <Button key='submit' onClick={this.props.onSubmit}>Submit</Button>
+      <Button key='submit' onClick={() => this.props.onSubmit(values)}>Submit</Button>
     </Paper>
   }
 
