@@ -3,7 +3,6 @@ import Web3 from 'web3';
 export const WEB3_REQUEST = `web3/REQUEST`
 export const WEB3_SET = `web3/SET`
 export const WEB3_CANCEL = 'web3/CANCEL'
-
 const initialState = {
     accounts: [],
     usingInfura: true,

@@ -1,23 +1,17 @@
-export const LOAD_WALLET = 'wallet/LOAD'
-export const UPDATE_WALLET = 'wallet/UPDATE'
-export const CREATE_WALLET = 'wallet/CREATE'
+import { exeDAO } from 'exedao.js';
+import Web3 from 'web3';
+
+import { WEB3_SET } from './web3';
 
 const initialState = {
-  exedao: null,
-  
+  exedao: new exeDAO(new Web3('http://127.0.0.1:8545'), null, '0xe78A0F7E598Cc8b0Bb87894B0F60dD2a88d6a8Ab'),
 }
 
 export default (state = initialState, action) => {
-    const {wallet, owners, threshold, type} = action
+    const {web3, accounts, type} = action
     switch (type) {
-        case UPDATE_WALLET:
-            return {...state, threshold, createPending: false, loadPending: false, wallet, owners}
-        case CREATE_WALLET:
-            return {...state, loadPending: false, createPending: true}
-        case LOAD_WALLET:
-            return {...state, createPending: false, loadPending: true}
-        case 'CLEAR_STORE':
-            return initialState
+        case WEB3_SET:
+            return {exedao: new exeDAO(web3, accounts[0], '0xe78A0F7E598Cc8b0Bb87894B0F60dD2a88d6a8Ab')}
         default:
             return state
     }

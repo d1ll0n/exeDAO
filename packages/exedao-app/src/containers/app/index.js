@@ -15,10 +15,11 @@ import Navbar from '../navbar';
 import Web3Modal from '../web3-modal';
 import Proposal from '../../components/proposal-form';
 
+
 class App extends Component {
   componentDidMount = () => {
     this.props.requestWeb3();
-    this.props.goHome();
+    // this.props.goHome();
     this.props.goProp()
   };
 
@@ -35,7 +36,7 @@ class App extends Component {
     <main>
       <Web3Modal />
       <Route exact path="/" component={Home} />
-      <Route exact path="/proposal-form" component={Proposal} />
+      <Route exact path="/proposal-form" component={Proposal} /> 
       <Route exact path="/wallet/create" component={WalletMaker} />
       <Route exact path="/wallet/load" component={WalletLoader} />
       <Route exact path="/wallet/vote" component={WalletVoter} />

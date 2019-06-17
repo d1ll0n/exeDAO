@@ -12,50 +12,41 @@ import FunctionForm from './FunctionForm'
 import { bindActionCreators } from 'redux'
 import { setWeb3, cancelRequest } from '../../actions/web3'
 
-const details = {
-  mintShares: {
-    requirement: 'Basic Majority',
-    inputs: [
-      { name: 'receiver', type: 'address' },
-      { name: 'shares', type: 'uint256' },
-      { name: 'shares', type: 'uint256' }
-    ]
+import baseAbi from './baseAbi';
+const list = [];
+const parsedAbi = baseAbi.reduce((abi, funcAbi) => {
+  if (funcAbi.stateMutability != 'view') {
+    abi[funcAbi.name] = funcAbi;
+    list.push(funcAbi.name);
   }
-}
-
-const list = ['mintShares']
+  return abi;
+}, {});
 
 const requirementMessages = {
-  'Basic Majority': 'To be executed, proposal must have more yes than no votes by the time it is halfway expired.',
-  'Absolute Majority': 'To be executed, proposal must have approval from more than half of all shares.'
+  'notset': 'The approval requirement for this function is not set. To execute against this function, its approval requirement must be agreed on.',
+  'basmaj': 'To be executed, proposal must have more yes than no votes by the time it is halfway expired.',
+  'absmaj': 'To be executed, proposal must have approval from more than half of all shares.'
 }
-
-const abi = {
-  "constant": false,
-  "inputs": [{ "name": "wallet", "type": "address" }, { "name": "wallet2", "type": "uint256" }],
-  "name": "addWalletAddress",
-  "outputs": [],
-  "payable": false,
-  "stateMutability": "nonpayable",
-  "type": "function"
-}
-
-// const TypeInput = ({})
 
 class ProposalForm extends Component {
   state = {
-    proposalType: null,
+    proposalType: list[0],
     proposalInputs: [],
-    proposalRequirement: null,
-    inputs: {}
+    proposalRequirement: 'basmaj',
+    inputs: {},
   }
 
+  /* componentWillReceiveProps = ({abi}) => {
+    const {functions, functionNames} = parseAbi(abi);
+    this.setState({ functions, functionNames });
+  } */
+
   setProposalType = ({target: {value: type}}) => {
-    const {requirement, inputs} = details[type];
+    const {inputs} = parsedAbi[type];
     this.setState({
       proposalType: type,
       proposalInputs: inputs,
-      proposalRequirement: requirement
+      // proposalRequirement: requirement
     });
   }
 
@@ -110,24 +101,7 @@ class ProposalForm extends Component {
     </Fragment>
   }
 
-  /* renderInputs = () => <Grid container
-    direction='row' wrap={false}
-    alignItems='flex-start' alignContent='flex-start'
-    justify='space-between' style={{width: 600}}>
-    {
-      this.state.proposalInputs
-        .map((inputDef, i) => <TextField
-          key={i}
-          label={`${inputDef.name} (${inputDef.type})`}
-          value={this.state[inputDef.name]}
-          onChange={(e) => this.handleChange(inputDef.name, e.target.value)}
-          margin="normal"
-          variant="filled"
-        />)
-    }
-  </Grid> */
-
-  renderInputs = () => <FunctionForm abi={abi} onSubmit={this.handleSubmit} />
+  renderInputs = () => <FunctionForm abi={parsedAbi[this.state.proposalType] || {}} onSubmit={this.handleSubmit} />
 
   render() {
     const {proposalType} = this.state

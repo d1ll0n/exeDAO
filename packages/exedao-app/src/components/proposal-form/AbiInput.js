@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import Switch from '@material-ui/core/Switch';
 import TextField from '@material-ui/core/TextField'
-
+import FormControlLabel from '@material-ui/core/FormControlLabel';
 
 const isHexOrNumeric = value => /^((0x[0-9A-Fa-f]*)|(\d*))$/.test(value);
 const isFixed = value => /(-)?(0x)?[0-9A-Fa-f]+/g.test(value);
@@ -31,10 +31,13 @@ class AbiInput extends Component {
 
   render() {
     const {onChange, name, type, value} = this.props;
-    if (type == 'bool') return <Switch
-      label={name} checked={value}
-      onChange={onChange}
-    />;
+    if (type == 'bool') return <FormControlLabel
+      label={`${name} (${type})`} control={
+        <Switch
+          label={`${name} (${type})`} checked={value}
+          onChange={() => onChange(name, !value)}
+        />
+      }/>;
     return <TextField
       label={`${name} (${type})`} value={value}
       margin="normal" onChange={this.handleChange}

@@ -20,12 +20,3 @@ const parseAbi = (abi) => {
   }
   return {functions, functionSignatures}
 }
-
-const isHex = value => /(0x)?[0-9A-Fa-f]+/g.test(value);
-const isFixed = value => /(-)?(0x)?[0-9A-Fa-f]+/g.test(value);
-
-const isArray = value => /(\w+)((\[(\d*)\])+)/g.test(value);
-const splitArr = value => {
-  const [_, type, arrLength] = /^(.+)(?:\[(\d*)\])$/g.exec(value);
-  return {type, arrLength}
-}
