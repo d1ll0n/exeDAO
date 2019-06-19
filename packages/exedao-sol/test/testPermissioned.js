@@ -1,17 +1,30 @@
 const {expect} = require('chai')
 const Web3 = require('web3')
 const web3 = new Web3('http://localhost:8545')
+const { AbiCoder } = require('web3-eth-abi');
+const coder = new AbiCoder();
+
+const signatureOf = (functionAbi) => coder.encodeFunctionSignature(functionAbi);
 
 const {bytecode, abi} = require('../build/Permissioned')
 let accounts
 
-const getFunctionSignature = web3.eth.abi.encodeFunctionSignature
-const mintSig = getFunctionSignature('mintShares(address,uint32)')
-const setReqSig = '0x0eb3e6aa'
+const mintSig = signatureOf('mintShares(address,uint32)')
+const setReqSig = signatureOf('setApprovalRequirement(bytes4,uint8)')
 
-const deploy = (address, shares, duration, mintReq, setReqReq) => new web3.eth.Contract(abi)
-  .deploy({ data: bytecode, arguments: [shares, duration, [mintSig, setReqSig], [mintReq, setReqReq]] })
-  .send({ from: address, gas: 4700000, value: 100000000000000 })
+const deploy = (address, shares, duration = 0, mintReq = 50, setReqReq = 50) => {
+  const contract = new web3.eth.Contract(abi)
+  return new Promise((resolve, reject) => contract
+    .deploy({ data: bytecode, arguments: [shares, duration, [mintSig, setReqSig], [mintReq, setReqReq]] })
+      .send({ from: address, gas: 4700000, value: 100000000000000 })
+        .on('receipt', (receipt) => {
+          contract._address = receipt.contractAddress;
+          resolve(contract)
+        })
+        .on('error', (e) => reject(e))
+  )
+}
+  
 
 before(async () => {
   accounts = await web3.eth.getAccounts()
@@ -19,30 +32,30 @@ before(async () => {
 
 module.exports = describe('Permissioned.sol', () => {
   it('Should initialize function requirements', async () => {
-    const contract = await deploy(accounts[0], 1000, 0, 1, 1)
-    const req = await contract.methods.proposalRequirements(mintSig).call()
+    const contract = await deploy(accounts[0], 1000, 0, 50, 50)
+    const req = await contract.methods.approvalRequirements(mintSig).call()
     expect(req).to.eq('1')
   })
 
   it('Should mint shares', async () => {
-    const contract = await deploy(accounts[0], 1000, 0, 1, 1)
-    const payload = contract.methods.mintShares(accounts[1], 500).encodeABI()
+    const contract = await deploy(accounts[0], 1000, 0, 50, 50)
+    const payload = contract.methods.mintShares(accounts[1], 501).encodeABI()
     await web3.eth.sendTransaction({from: accounts[0], data: payload, gas: 250000, to: contract._address})
     const shares = await contract.methods.daoists(accounts[1]).call()
     expect(shares).to.eq('500')
   })
 
   it('Should set a proposal requirement', async () => {
-    const contract = await deploy(accounts[0], 1000, 0, 1, 1)
-    const payload = contract.methods.setProposalRequirement(mintSig, 4).encodeABI()
+    const contract = await deploy(accounts[0], 1000, 0, 50, 50)
+    const payload = contract.methods.setApprovalRequirement(mintSig, 4).encodeABI()
     await web3.eth.sendTransaction({from: accounts[0], data: payload, gas: 250000, to: contract._address})
-    const req = await contract.methods.proposalRequirements(mintSig).call()
+    const req = await contract.methods.approvalRequirements(mintSig).call()
     expect(req).to.eq('4')
   })
 
   describe('Function Requirements', () => {
     it('Absolute Majority', async () => {
-      const contract = await deploy(accounts[0], 51, 5, 2, 1)
+      const contract = await deploy(accounts[0], 50, 5, 50, 50)
       // Give acct #2 49 shares, acct #1 has all shares so should be able to force share minting
       let payload = contract.methods.mintShares(accounts[1], 49).encodeABI()
       await web3.eth.sendTransaction({from: accounts[0], data: payload, gas: 250000, to: contract._address})

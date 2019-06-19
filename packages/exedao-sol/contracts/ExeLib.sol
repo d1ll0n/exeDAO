@@ -2,13 +2,11 @@ pragma solidity ^0.5.5;
 
 library ExeLib {
   struct Extension {
+    bytes32 metaHash; // used to share abi and function descriptions
     address extensionAddress;
     bool useDelegate;
-    string[] rawFunctions;
-  }
-
-  function signatureOf(string memory rawFunction) internal pure returns (bytes4) {
-    return bytes4(keccak256(bytes(rawFunction)));
+    bytes bytecode;
+    bytes4[] functionSignatures;
   }
 
   function isPermissible (bytes memory bytecode, bool disallowDestruct)
@@ -31,6 +29,14 @@ library ExeLib {
       }
     }
     return permissible == 1;
+  }
+
+  function deploy(bytes memory bytecode) internal returns (address extAddress) {
+    uint size = bytecode.length;
+    assembly {
+      let start := add(bytecode, 0x20)
+      extAddress := create(0, start, size)
+    }
   }
 
   function delegateExecute(bytes memory bytecode) internal {

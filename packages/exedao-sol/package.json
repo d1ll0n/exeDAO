@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "mocha ./sol/test --timeout 10000",
+    "test": "mocha ./test --timeout 10000",
     "prepare": "lerna run --stream --sort prepare"
   },
   "repository": {
@@ -33,7 +33,7 @@
     "ganache-cli": "^6.4.3",
     "kool-makerpccall": "^0.1.0",
     "mocha": "^6.1.4",
-    "web3": "^1.0.0-beta.36",
+    "web3": "1.0.0-beta.36",
     "web3-eth-abi": "^1.0.0-beta.55"
   }
 }

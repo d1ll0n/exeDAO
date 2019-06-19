@@ -5,7 +5,7 @@ import "./Extendable.sol";
 
 contract exeDAO is Extendable {
   constructor(
-    uint32 shares, uint32 _proposalDuration,
+    uint64 shares, uint64 _proposalDuration,
     bytes4[] memory funcSigs, uint8[] memory requirements
   ) public payable Extendable(shares, _proposalDuration, funcSigs, requirements) {}
 
@@ -26,13 +26,10 @@ contract exeDAO is Extendable {
   }
 
   /** @dev Lock some eth and make a request to buy shares. */
-  function requestShares(uint32 shares) external payable {
+  function requestShares(uint64 shares) external payable {
     require(buyRequests[msg.sender].lockedwei == 0, "Buy request pending");
     require(shares > 0, "Can not request 0 shares");
-    buyRequests[msg.sender] = DaoLib.BuyRequest({
-      lockedwei: msg.value,
-      amount: shares
-    });
+    buyRequests[msg.sender] = DaoLib.BuyRequest(msg.value, shares);
   }
 
   /** @dev For buyer, cancel the offer and reclaim wei if a proposal has not been

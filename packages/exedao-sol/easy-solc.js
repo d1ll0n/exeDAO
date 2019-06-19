@@ -6,11 +6,11 @@ const findImports = (importPath) => ({
   contents: fs.readFileSync(path.join(__dirname, 'contracts', importPath), 'utf8')
 })
 
-const easySolc = (contractName, src) => {
+const easySolc = (entryFile, src, returnAll) => {
   const out = JSON.parse(solc.compile(JSON.stringify({
     language: 'Solidity',
     sources: {
-      [ contractName + '.sol' ]: {
+      [ entryFile + '.sol' ]: {
         content: src
       }
     },
@@ -31,22 +31,27 @@ const easySolc = (contractName, src) => {
     console.log(out.errors)
     throw toThrow;
   }
-  const {
-    abi,
-    evm: {
-      bytecode: {
-        object: bytecode
-      },
-      deployedBytecode: {
-        object: deployedBytecode
+  const output = {};
+  for (let contractName of Object.keys(out.contracts).map(k => k.replace('.sol', ''))) {
+    const {
+      abi,
+      evm: {
+        bytecode: {
+          object: bytecode
+        },
+        deployedBytecode: {
+          object: deployedBytecode
+        }
       }
+    } = out.contracts[contractName + '.sol'][contractName];
+    output[contractName] = {
+      abi,
+      bytecode: '0x' + bytecode,
+      deployedBytecode: '0x' + deployedBytecode
     }
-  } = out.contracts[contractName + '.sol'][contractName];
-  return {
-    abi,
-    bytecode: '0x' + bytecode,
-    deployedBytecode: '0x' + deployedBytecode
-  };
+  }
+  if (!returnAll) return output[entryFile];
+  return output;
 };
 
 module.exports = easySolc;
