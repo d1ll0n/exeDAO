@@ -21,6 +21,7 @@ module.exports = async () => {
       const receipt = await rpcCall(web3.currentProvider.host, 'eth_getTransactionReceipt', [ deployTxHash ]);
       if (receipt && receipt.contractAddress) {
         contractAddress = receipt.contractAddress;
+        console.log(`contract -- ${contractAddress}`)
         break;
       }
       await new Promise((resolve) => setTimeout(resolve, 2500));
