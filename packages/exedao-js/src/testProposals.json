@@ -1,0 +1,28 @@
+[
+  {
+    "function": "executeBuyOffer",
+    "arguments": ["0x6Ecbe1DB9EF729CBe972C83Fb886247691Fb6beb"],
+    "description": "Accept purchase offer from bob"
+  },
+  {
+    "function": "addExtension",
+    "arguments": ["0x6Ecbe1DB9EF729CBe972C83Fb886247691Fb6beb", true, ["0xabcdefgh"]],
+    "title": "Add function for basic addition",
+    "description": "We need to learn math",
+    "code": {
+      "language": "Solidity",
+      "version": "0.5.9+commit.e560f70d.Emscripten.clang",
+      "contractName": "Math",
+      "sources": {
+        "math.sol": {
+          "content": "pragma solidity 0.5.9; contract Math { function add(uint a, uint b) external returns (uint) { return a+b; } }"
+        }
+      },
+      "settings": {
+        "optimizer": {
+          "enabled": true
+        }
+      }
+    }
+  }
+]

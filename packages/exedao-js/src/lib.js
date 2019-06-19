@@ -1,30 +1,26 @@
 const { AbiCoder } = require('web3-eth-abi');
+const multihashes = require('multihashes');
+const CID = require('cids');
 const coder = new AbiCoder();
 
-const getFunctionInfo = (rawFunctionDefinition) => {
-  let [name, types] = rawFunctionDefinition.split('(')
-  types = types.replace(')','').split(',')
-  let signature = coder.encodeFunctionSignature(rawFunctionDefinition);
-  let encodeCall = (...args) => signature + coder.encodeParameters(types, args).slice(2);
-  return {name, signature, encodeCall}
-}
+const signatureOf = (functionAbi) => coder.encodeFunctionSignature(functionAbi);
 
-const votesNeeded = (requirement, totalShares, yes, no) => {
-  switch(requirement) {
-    case '1':
-      return 1 + no - yes;
-    case '2':
-      return Math.floor(1 + totalShares/2) - yes;
-    case '3':
-      return Math.floor(1 + totalShares*2/3) - yes;
-    case '4':
-      return Math.floor(1 + totalShares*9/10) - yes;
-    default:
-      return null;
-  }
-}
+const votesNeeded = (approvalRequirement, totalShares, votes) => {
+  if (approvalRequirement == 255) return 0;
+  const totalNeeded = Math.floor(1+totalShares*approvalRequirement/100);
+  return votes >= totalNeeded ? 0 : totalNeeded-votes;
+};
+
+const toMh = (shaHash) => {
+  const buf = Buffer.from(shaHash, 'hex');
+  return multihashes.encode(buf, 'sha3-256');
+};
+
+const toSha = (mh) => new CID(mh).multihash.toString('hex').slice(4);
 
 module.exports = {
-  getFunctionInfo,
-  votesNeeded
+  votesNeeded,
+  signatureOf,
+  toMh,
+  toSha
 };

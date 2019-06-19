@@ -9,7 +9,7 @@ const coder = new AbiCoder();
 */
 
 const defaultRequirements = [
-  ['setMinimumRequestValue(uint)', '3'],
+  ['setMinimumRequestValue(uint)', '66'],
   ['safeExecute(bytes)', '3'],
   ['unsafeExecute(bytes)', '4'],
   ['executeBuyOffer(address)', '2'],

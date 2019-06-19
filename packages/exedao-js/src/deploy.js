@@ -5,7 +5,7 @@ const {bytecode} = require('../build/bytecode')
 const toArgs = ({ shares, duration, requirements, signatures }) =>
   [shares, duration, signatures, requirements];
 
-const deploy = (web3, from, options) => {
+const deploy = (web3, from, options = {}) => {
   const _options = {...defaults, ...options}
   const contract = new web3.eth.Contract(abi)
   const transaction = contract.deploy({ data: bytecode, arguments: toArgs(_options) })
