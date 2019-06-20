@@ -9,14 +9,14 @@ const coder = new AbiCoder();
 */
 
 const defaultRequirements = [
-  ['setMinimumRequestValue(uint)', '66'],
+  ['setMinimumRequestValue(uint256)', '66'],
   ['safeExecute(bytes)', '66'],
-  ['unsafeExecute(bytes)', '4'],
-  ['executeBuyOffer(address)', '2'],
-  ['addExtension(address,bool,string[])', '3'],
-  ['removeExtension(uint)', '3'],
-  ['mintShares(address,uint32)', '3'],
-  ['setProposalRequirement(bytes4,uint8)', '3']
+  ['unsafeExecute(bytes)', '90'],
+  ['executeBuyOffer(address)', '50'],
+  ['addExtension((bytes32,address,bool,bytes,bytes4[]))', '66'],
+  ['removeExtension(uint256)', '66'],
+  ['mintShares(address,uint64)', '66'],
+  ['setApprovalRequirement(bytes4,uint8)', '66']
 ];
 
 const signatures = [];

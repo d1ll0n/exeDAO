@@ -6,7 +6,7 @@ const coder = new AbiCoder();
 const signatureOf = (functionAbi) => coder.encodeFunctionSignature(functionAbi);
 
 const votesNeeded = (approvalRequirement, totalShares, votes) => {
-  if (approvalRequirement == 255) return 0;
+  if (approvalRequirement === 255) return 0;
   const totalNeeded = Math.floor(1+totalShares*approvalRequirement/100);
   return votes >= totalNeeded ? 0 : totalNeeded-votes;
 };

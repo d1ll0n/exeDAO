@@ -1,6 +1,7 @@
 const rp = require('request-promise');
 const multihashes = require('multihashes');
 const CID = require('cids');
+const isBrowser = require('is-browser');
 
 const gatewayUrl = 'https://gateway.temporal.cloud/ipfs/';
 
@@ -19,7 +20,7 @@ module.exports = class API {
     this.web3 = web3;
     this.address = address;
     this.apiUrl = apiUrl;
-    if (window) {
+    if (isBrowser) {
       const authToken = window.localStorage.getItem('auth-token');
       if (authToken) {
         const {token, expiresAt} = JSON.parse(authToken);

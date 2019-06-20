@@ -25,7 +25,7 @@ describe('exedao.js deploy', () => {
     for (let i in signatures) {
       const sig = signatures[i];
       const req = requirements[i];
-      expect(await contract.methods.proposalRequirements(sig).call()).to.eq(req)
+      expect(await contract.methods.approvalRequirements(sig).call()).to.eq(req)
     }
   })
 })

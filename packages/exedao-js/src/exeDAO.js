@@ -1,11 +1,12 @@
 const {getFunctionInfo, votesNeeded} = require('./lib');
-const {signatureOf} = require('./lib/abi');
+const {signatureOf} = require('./util/abi');
 const {signatures: builtInFuncSigs} = require('./defaults');
 const Contract = require('./contract');
-const Hasher = require('./lib/hasher');
+const Hasher = require('./util/hasher');
 const deploy = require('./deploy');
-const Compiler = require('./lib/compiler');
-const API = require('./lib/api');
+const Compiler = require('./util/compiler');
+const API = require('./util/api');
+
 
 module.exports = class exeDAO extends Contract {
   constructor(web3, userAddress, contract, apiUrl) {
@@ -161,25 +162,22 @@ module.exports = class exeDAO extends Contract {
   /* </GETTERS> */
 
   /* <PROPOSALS> */
-  voteByHash(proposalHash, vote, gas) { return this.send('submitOrVote', gas, 0, proposalHash, vote); }
+  voteByHash(proposalHash, gas) { return this.send('submitOrVote', gas, 0, proposalHash); }
   requestShares(shares) { return this.send('requestShares', shares); }
   async sendProposal(method, gas, value, ...args) {
     if (!this.contract.methods[method]) throw new Error(`No method for ${method}`);
     const data = this.contract.methods[method](...args).encodeABI();
     const proposalHash = this.hasher.sha3(data);
-    const {votes, proposalIndex} = await this.getProposal(proposalHash);
-    if (proposalIndex != '0') { /* proposal has index (already created / not canceled) */
-      // Check if the proposal would be approved after voting for it.
-      // If it would, send the full calldata.
-      const signature = data.slice(0, 10);
-      const requirement = this.approvalRequirements[signature];
-      if (requirement == 0) throw new Error('Approval requirement not set, try setApprovalRequirement');
-      const totalShares = await this.getTotalShares();
-      const remainder = votesNeeded(requirement, totalShares, votes);
-      const shares = await this.getShares(this.address);
-      if (shares >= remainder) return this.sendRaw(data, gas, value);
-    }
-    return this.voteByHash(proposalHash, true, gas)
+    let {votes, proposalIndex} = await this.getProposal(proposalHash);
+    if (proposalIndex == '0') votes = 0;
+    const signature = data.slice(0, 10);
+    const requirement = this.approvalRequirements[signature];
+    if (requirement == 0) throw new Error('Approval requirement not set, try setApprovalRequirement');
+    const totalShares = await this.getTotalShares();
+    const remainder = votesNeeded(requirement, totalShares, votes);
+    const shares = await this.getShares(this.address);
+    if (shares >= remainder) return this.sendRaw(data, gas, value);
+    return this.voteByHash(proposalHash, gas)
   }
 
   mintShares(address, shares, gas) { return this.sendProposal('mintShares', gas, 0, address, shares); }

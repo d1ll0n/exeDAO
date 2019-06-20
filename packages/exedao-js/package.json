@@ -13,6 +13,7 @@
     "body-parser": "^1.19.0",
     "cids": "^0.7.1",
     "express": "^4.17.1",
+    "is-browser": "^2.1.0",
     "multihashes": "^0.4.14",
     "request-promise": "^4.2.4",
     "web3-eth-abi": "^1.0.0-beta.55"
