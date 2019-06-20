@@ -28,7 +28,7 @@ describe('Shared.sol', () => {
     const balance = await web3.eth.getBalance(accounts[0])
     const receipt = await contract.methods.burnShares(1000).send({ from: accounts[0] })
     const balance2 = await web3.eth.getBalance(accounts[0])
-    
-    expect(+balance + 100000000000000 - receipt.gasUsed * 20000000000).to.eq(+balance2)
+    const price = await web3.eth.getGasPrice()
+    expect(+balance + 100000000000000 - receipt.gasUsed * price).to.eq(+balance2)
   })
 })

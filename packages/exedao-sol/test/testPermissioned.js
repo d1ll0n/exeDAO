@@ -9,7 +9,7 @@ const signatureOf = (functionAbi) => coder.encodeFunctionSignature(functionAbi);
 const {bytecode, abi} = require('../build/Permissioned')
 let accounts
 
-const mintSig = signatureOf('mintShares(address,uint32)')
+const mintSig = signatureOf('mintShares(address,uint64)')
 const setReqSig = signatureOf('setApprovalRequirement(bytes4,uint8)')
 
 const deploy = (address, shares, duration = 0, mintReq = 50, setReqReq = 50) => {
@@ -34,7 +34,7 @@ module.exports = describe('Permissioned.sol', () => {
   it('Should initialize function requirements', async () => {
     const contract = await deploy(accounts[0], 1000, 0, 50, 50)
     const req = await contract.methods.approvalRequirements(mintSig).call()
-    expect(req).to.eq('1')
+    expect(req).to.eq('50')
   })
 
   it('Should mint shares', async () => {
@@ -42,23 +42,27 @@ module.exports = describe('Permissioned.sol', () => {
     const payload = contract.methods.mintShares(accounts[1], 501).encodeABI()
     await web3.eth.sendTransaction({from: accounts[0], data: payload, gas: 250000, to: contract._address})
     const shares = await contract.methods.daoists(accounts[1]).call()
-    expect(shares).to.eq('500')
+    expect(shares).to.eq('501')
   })
 
   it('Should set a proposal requirement', async () => {
     const contract = await deploy(accounts[0], 1000, 0, 50, 50)
-    const payload = contract.methods.setApprovalRequirement(mintSig, 4).encodeABI()
+    const payload = contract.methods.setApprovalRequirement(mintSig, 50).encodeABI()
     await web3.eth.sendTransaction({from: accounts[0], data: payload, gas: 250000, to: contract._address})
     const req = await contract.methods.approvalRequirements(mintSig).call()
-    expect(req).to.eq('4')
+    expect(req).to.eq('50')
   })
 
   describe('Function Requirements', () => {
     it('Absolute Majority', async () => {
-      const contract = await deploy(accounts[0], 50, 5, 50, 50)
+      const contract = await deploy(accounts[0], 51, 5, 50, 50)
       // Give acct #2 49 shares, acct #1 has all shares so should be able to force share minting
       let payload = contract.methods.mintShares(accounts[1], 49).encodeABI()
+      let payloadHash = web3.utils.soliditySha3({ t: 'bytes', v: payload })
       await web3.eth.sendTransaction({from: accounts[0], data: payload, gas: 250000, to: contract._address})
+      // console.log(payloadHash)
+      // console.log(prop)
+      const prop = await contract.methods.getProposal(payloadHash).call()
       expect(await contract.methods.daoists(accounts[1]).call()).to.eq('49')
       expect(await contract.methods.totalShares().call()).to.eq('100')
       // Give acct #3 2 shares, acct #1 has majority so should be able to force share minting

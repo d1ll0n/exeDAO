@@ -12,17 +12,17 @@ const signatureOf = (functionAbi) => coder.encodeFunctionSignature(functionAbi);
 const {bytecode, abi} = require('../build/Extendable')
 let accounts, contract
 
-const mintSig = signatureOf('mintShares(address,uint32)')
+const mintSig = signatureOf('mintShares(address,uint64)')
 const setReqSig = signatureOf('setApprovalRequirement(bytes4,uint8)')
 const addSig = signatureOf('addExtension(address,bool,string[])')
 
 const z32 = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
 const z20 = '0x0000000000000000000000000000000000000000';
 
-const deploy = (address, shares, duration = 0, mintReq = 1, setReqReq = 1) => {
+const deploy = (address, shares, duration = 100, mintReq = 50, setReqReq = 50) => {
   const contract = new web3.eth.Contract(abi);
   return new Promise((resolve, reject) => contract
-    .deploy({ data: bytecode, arguments: [shares, duration, [mintSig, setReqSig, addSig], [mintReq, setReqReq, 1]] })
+    .deploy({ data: bytecode, arguments: [shares, duration, [mintSig, setReqSig, addSig], [mintReq, setReqReq, 50]] })
       .send({ from: address, gas: 4700000, value: 100000000000000 })
         .on('receipt', (receipt) => {
           contract._address = receipt.contractAddress;
@@ -64,11 +64,11 @@ module.exports = describe('Extendable.sol', () => {
       functionSignatures: [outputSig]
     }).encodeABI()
     await web3.eth.sendTransaction({ from: accounts[0], data: payload, gas: 4700000, to: contract._address })
-    payload = contract.methods.setProposalRequirement(outputSig, 1).encodeABI()
+    payload = contract.methods.setApprovalRequirement(outputSig, 50).encodeABI()
     await web3.eth.sendTransaction({ from: accounts[0], data: payload, gas: 4700000, to: contract._address })
     payload = ext.methods.add(5, 5).encodeABI()
     let receipt = await web3.eth.sendTransaction({ from: accounts[0], data: payload, gas: 4700000, to: contract._address })
-    expect(parseInt(receipt.logs[2].data, 16)).to.eq(10)
+    expect(parseInt(receipt.logs[1].data, 16)).to.eq(10)
   })
 
   describe('Opcode Restriction', () => {

@@ -46,6 +46,10 @@ contract Permissioned is Shared {
     proposals.push(DaoLib.Proposal(0, 0, 0));
   }
 
+  function setProposalDuration(uint64 duration) external {
+    if (voteAndContinue()) proposalDuration = duration;
+  }
+
   function votesNeeded (uint64 votes, uint8 approvalRequirement)
   internal view returns (uint64 needed) {
     if (approvalRequirement == 255) return 0;
@@ -100,19 +104,6 @@ contract Permissioned is Shared {
     if (voteAndContinue()) approvalRequirements[funcSig] = approvalRequirement;
   }
 
-  /** @dev Call _submitOrVote() and return true if the proposal is approved, false if not. */
-  function voteAndContinue() internal returns (bool) {
-    bytes32 proposalHash = keccak256(msg.data);
-    (uint index, bool isApproved) = _submitOrVote(proposalHash, true);
-    if (isApproved) {
-      delete proposals[index];
-      delete proposalIndices[proposalHash];
-      if (proposalMetaHashes[proposalHash] != 0) delete proposalMetaHashes[proposalHash];
-      emit ProposalApproval(msg.sender, proposalHash);
-    }
-    return isApproved;
-  }
-
   /** @dev Cancel a proposal if it has expired. */
   function closeProposal(bytes32 proposalHash) external {
     uint index = proposalIndices[proposalHash];
@@ -126,26 +117,42 @@ contract Permissioned is Shared {
     }
   }
 
-  /** @dev Create a proposal if it does not exist, vote on it otherwise. */
-  function _submitOrVote(bytes32 proposalHash, bool _internal)
-  internal returns (uint index, bool approved) {
-    uint64 shares = getShares();
+  /** @dev Call _submitOrVote() and return true if the proposal is approved, false if not. */
+  function voteAndContinue() internal returns (bool) {
+    bytes32 proposalHash = keccak256(msg.data);
+    (uint64 shares, uint index, bool approved) = preVoteCheck(proposalHash);
+    // (uint index, bool isApproved) = _submitOrVote(proposalHash, true);
+    if (approved) {
+      delete proposals[index];
+      delete proposalIndices[proposalHash];
+      if (proposalMetaHashes[proposalHash] != 0) delete proposalMetaHashes[proposalHash];
+      emit ProposalApproval(msg.sender, proposalHash);
+    } else _submitOrVote(proposalHash, shares, index);
+    return approved;
+  }
+
+  /// @dev determines whether a proposal would be accepted given the caller's votes
+  function preVoteCheck(bytes32 proposalHash) internal view
+  returns (uint64 shares, uint index, bool approved) {
+    shares = getShares();
+    uint64 totalNeeded = 1+totalShares*approvalRequirements[msg.sig]/100;
     index = proposalIndices[proposalHash];
+    if (index == 0) approved = shares >= totalNeeded;
+    else approved = shares >= (totalNeeded - proposals[index].votes);
+  }
+
+  /** @dev Create a proposal if it does not exist, vote on it otherwise. */
+  function _submitOrVote(bytes32 proposalHash, uint64 shares, uint index) internal {
     if (index == 0) {
-      index = proposals.length;
-      proposalIndices[proposalHash] = index;
+      uint _index = proposals.length;
+      proposalIndices[proposalHash] = _index;
       proposals.push(DaoLib.Proposal(proposalHash, shares, uint64(block.number + proposalDuration)));
-      proposals[index].voters[msg.sender] = true;
+      proposals[_index].voters[msg.sender] = true;
       emit ProposalSubmission(msg.sender, proposalHash, proposalMetaHashes[proposalHash], shares);
     } else {
       DaoLib.Proposal memory proposal = proposals[index];
       require(proposal.expiryBlock > block.number, "Proposal expired");
-      uint64 votesLeft = votesNeeded(proposal.votes, approvalRequirements[msg.sig]);
-      bool canVote = !proposals[index].voters[msg.sender];
-      approved = (canVote && shares >= votesLeft) || votesLeft == 0;
-      // for internal calls, we do not need to add votes if the proposal is approved
-      if (approved && _internal) return (index, approved);
-      if (canVote && votesLeft > 0) {
+      if (!proposals[index].voters[msg.sender]) {
         proposals[index].voters[msg.sender] = true;
         proposals[index].votes = proposal.votes + shares;
         emit ProposalVote(msg.sender, proposalHash, shares);
@@ -154,7 +161,9 @@ contract Permissioned is Shared {
   }
 
   function submitOrVote(bytes32 proposalHash) external returns(uint, uint) {
-    (uint index,) = _submitOrVote(proposalHash, false);
+    uint64 shares = getShares();
+    uint index = proposalIndices[proposalHash];
+    _submitOrVote(proposalHash, shares, index);
     DaoLib.Proposal memory proposal = proposals[index];
     return(proposal.votes, proposal.expiryBlock);
   }
@@ -166,8 +175,10 @@ contract Permissioned is Shared {
   /// to the contract bytecode for easy verification of what is being executed without needing to audit the bytecode.
   /// For extra security, the IPFS hash could point to ciphertext which only daoists can decrypt via some key exchange.
   function submitWithMetaHash(bytes32 proposalHash, bytes32 metaHash) external returns(uint index) {
-    require(proposalIndices[proposalHash] == 0, "Proposal already exists");
+    uint64 shares = getShares();
+    index = proposalIndices[proposalHash];
+    require(index == 0, "Proposal already exists");
+    _submitOrVote(proposalHash, shares, index);
     proposalMetaHashes[proposalHash] = metaHash;
-    (index,) = _submitOrVote(proposalHash, false);
   }
 }

@@ -12,8 +12,7 @@ const rimraf = (p) => new Promise((resolve, reject) => rimrafCallback(p, (err) =
 const buildPath = path.join(__dirname, 'build');
 let solOutput;
 try {
-  solOutput = easySolc('exeDAO', fs.readFileSync(path.join(__dirname, 'contracts', `exeDAO.sol`), 'utf8', true)
-  );
+  solOutput = easySolc('exeDAO', fs.readFileSync(path.join(__dirname, 'contracts', `exeDAO.sol`), 'utf8'), true);
 } catch (e) {
   if (e.errors) return e.errors.forEach((err) => console.error(err.formattedMessage));
   throw e;

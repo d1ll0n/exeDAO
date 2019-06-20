@@ -3,9 +3,9 @@ pragma solidity ^0.5.5;
 library ExeLib {
   struct Extension {
     bytes32 metaHash; // used to share abi and function descriptions
+    bytes32 bytecodeHash;
     address extensionAddress;
     bool useDelegate;
-    bytes bytecode;
     bytes4[] functionSignatures;
   }
 
@@ -24,7 +24,7 @@ library ExeLib {
         case 0xff { if disallowDestruct { permissible := 0 } } // selfdestruct
         default {
           let isPush := and(lt(op, 0x80), gt(op, 0x5f))
-          if eq(isPush, 0x1) { i := add(i, sub(op, 0x5f)) }
+          if eq(isPush, 0x1) { i := add(i, sub(0x5f, op)) }
         }
       }
     }
