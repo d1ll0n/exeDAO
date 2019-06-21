@@ -72,6 +72,9 @@ describe('exeDAO class', () => {
       functionSignatures: [soliditySha3('add(uint256,uint256)').substr(0, 10)]
     };
     await exedao.addExtension(ext, 2000000);
+    exedao.address = accounts[1];
+    await exedao.addExtension(ext, 2000000);
+    exedao.address = accounts[0];
 //    await exedao2.addExtension(ext, 2000000);
 //    await exedao.updateExtensions();
 //    expect(exedao.functionEncoders.add).exist
@@ -98,6 +101,6 @@ describe('exeDAO class', () => {
     })
     exedao.add = (gas, value, ...args) => exedao.sendProposal('add', gas, value, ...args);
     const receipt = await exedao.add(1000000, 0, 5, 10)
-    expect(parseInt(receipt.logs[2].data, 16)).to.eql(15)
+    expect(parseInt(receipt.logs[1].data, 16)).to.eql(15)
   })
 })
