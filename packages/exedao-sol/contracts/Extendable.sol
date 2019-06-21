@@ -2,18 +2,15 @@ pragma solidity ^0.5.5;
 pragma experimental ABIEncoderV2;
 
 import "./ExeLib.sol";
-import "./ExeLibAddress.sol";
 import "./Permissioned.sol";
 
 contract Extendable is Permissioned {
-  using ExeLibAddress for address;
+  using ExeLib for address;
   using ExeLib for bytes;
   ExeLib.Extension[] public extensions;
   mapping(bytes4 => uint) public extensionFor;
 
   event ExtensionAdded(uint extensionIndex, bytes32 metaHash);
-  event SomeLog();
-  event Record(uint256 indexed a, uint256 indexed b);
 
   constructor(
     uint64 shares, uint64 _proposalDuration,
@@ -21,15 +18,10 @@ contract Extendable is Permissioned {
   ) public payable Permissioned(shares, _proposalDuration, funcSigs, requirements) {}
 
   function () external payable {
-    bytes4 sig = bytes4(0);
-    assembly {
-      let word := calldataload(0x0)
-      sig := shl(0xe0, word)
-    }
-    uint256 ext = extensionFor[sig];
-    if (extensions[ext].extensionAddress != address(0) && voteAndContinue()) {
-      if (extensions[ext].useDelegate) extensions[ext].extensionAddress.delegateExecute();
-      else extensions[ext].extensionAddress.doCall();
+    ExeLib.Extension memory extension = extensions[extensionFor[msg.sig]];
+    if (extension.extensionAddress != address(0) && voteAndContinue()) {
+      if (extension.useDelegate) extension.extensionAddress.delegateExecute();
+      else extension.extensionAddress.doCall();
     }
   }
 
