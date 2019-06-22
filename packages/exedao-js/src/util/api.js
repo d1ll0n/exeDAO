@@ -62,27 +62,33 @@ module.exports = class API {
   }
 
   async login() {
+    console.log('exedao api: login')
     const url = `${this.apiUrl}login`;
     const options = { method: 'POST', uri: url, form: {address: this.address}, json: true };
-    const {data: {challenge}} = await rp(options).then(res => res.json());
+    const res = await rp(options);
+    console.log(res)
+    const {data: {challenge}} = res;
+    console.log('exedao api: got challenge ', challenge)
     const signature = await this.signChallenge(challenge);
     options.form = {challengeToken: challenge, signature};
-    const {data: {token}} = await rp(options).then(res => res.json());
+    const {data: {token}} = await rp(options);
     this.saveToken(token);
+    console.log('exedao api: got token ', token)
+    return token;
   }
 
   async refresh() {
     const url = `${this.apiUrl}dao/refresh`;
     const options = { method: 'POST', uri: url, json: true };
-    const {data: {token}} = await this.rp(options).then(res => res.json());
+    const {data: {token}} = await this.rp(options);
     this.saveToken(token);
   }
 
   signChallenge(challengeToken) {
-    const challengeHash = this.web3.utils.soliditySha3({t: 'bytes', v: challengeToken});
+    const challengeHash = this.web3.utils.soliditySha3(challengeToken.toString('hex'));
     const challengeParams = [
-      { type: 'string', name: 'Message', value: `I certify that I am the owner of ${address}` },
-      { type: 'bytes32', name: 'Verification ID', value: challengeHash(challengeToken) }
+      { type: 'string', name: 'Message', value: `I certify that I am the owner of ${this.address}` },
+      { type: 'bytes32', name: 'Verification ID', value: challengeHash }
     ]
     return new Promise((resolve, reject) => {
       this.web3.currentProvider.sendAsync({
@@ -90,7 +96,7 @@ module.exports = class API {
         params: [challengeParams, this.address],
         from: this.address,
       }, function (err, result) {
-    
+        console.log(result)
         if (err) reject(err);
         if (result.error) reject(result.error);
         resolve(result.result);
@@ -116,7 +122,7 @@ module.exports = class API {
     return file;
   }
 
-  async putProposal(data) { // data = {proposalHash, data, private, extension}
+  async putProposal(data) { // data = {proposalHash, data, membersOnly, extension}
     await this.checkToken();
     const url = `${this.apiUrl}dao/putProposal`;
     const options = { method: 'POST', uri: url, form: data, json: true };

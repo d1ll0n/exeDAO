@@ -1,6 +1,6 @@
 {
-  "name": "exedao.js",
-  "version": "1.0.8",
+  "name": "exedao-js",
+  "version": "1.0.0",
   "description": "",
   "main": "src/index.js",
   "scripts": {
@@ -10,12 +10,17 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "assert": "^2.0.0",
     "body-parser": "^1.19.0",
     "cids": "^0.7.1",
     "express": "^4.17.1",
+    "https": "^1.0.0",
     "is-browser": "^2.1.0",
+    "keccak": "^2.0.0",
+    "memorystream": "^0.3.1",
     "multihashes": "^0.4.14",
     "request-promise": "^4.2.4",
+    "require-from-string": "^2.0.2",
     "web3-eth-abi": "^1.0.0-beta.55"
   },
   "devDependencies": {

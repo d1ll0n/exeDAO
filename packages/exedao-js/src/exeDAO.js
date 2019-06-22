@@ -1,12 +1,10 @@
-const {getFunctionInfo, votesNeeded} = require('./lib');
+const {votesNeeded} = require('./util/exedao');
 const {signatureOf} = require('./util/abi');
-const {signatures: builtInFuncSigs} = require('./defaults');
 const Contract = require('./contract');
 const Hasher = require('./util/hasher');
 const deploy = require('./deploy');
 const Compiler = require('./util/compiler');
 const API = require('./util/api');
-
 
 module.exports = class exeDAO extends Contract {
   constructor(web3, userAddress, contract, apiUrl) {
@@ -28,13 +26,14 @@ module.exports = class exeDAO extends Contract {
   }
 
   /* <LISTENERS> */
-  async addExtensionListener() {
+  async addExtensionListener(cb) {
     const blockNumber = await this.web3.eth.getBlockNumber()
     this.contract.events.ExtensionAdded(
       {fromBlock: blockNumber},
       ({returnValues: {extensionIndex, metaHash}}) => {
         console.log(`Got extension added event -- index ${extensionIndex} | meta hash ${metaHash}`);
-        this.updateExtension(metaHash)
+        // this.updateExtension(metaHash)
+        cb({extensionIndex, metaHash})
     })
   }
 
@@ -44,6 +43,7 @@ module.exports = class exeDAO extends Contract {
       {fromBlock: blockNumber},
       ({returnValues: {proposalHash, metaHash}}) => {
         console.log(`Got proposal submission event -- proposal hash ${proposalHash} | meta hash ${metaHash}`);
+        cb({proposalHash, metaHash})
     })
   }
   /* </LISTENERS> */
@@ -162,7 +162,7 @@ module.exports = class exeDAO extends Contract {
   /* </GETTERS> */
 
   /* <PROPOSALS> */
-  voteByHash(proposalHash, gas) { return this.send('submitOrVote', gas, 0, proposalHash); }
+  submitOrVote(proposalHash, gas) { return this.send('submitOrVote', gas, 0, proposalHash); }
   requestShares(shares) { return this.send('requestShares', shares); }
   async sendProposal(method, gas, value, ...args) {
     if (!this.contract.methods[method]) throw new Error(`No method for ${method}`);

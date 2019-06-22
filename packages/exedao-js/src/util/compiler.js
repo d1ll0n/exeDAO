@@ -1,6 +1,10 @@
+const wrapper = require('./solc/wrapper');
+
 module.exports = class Compiler {
-  constructor() {
-    this.solc = (window && window.Module) ? require('solc/wrapper')(window.Module) : require('solc');
+  constructor(solc) {
+    if (solc) this.solc = solc;
+    else if (!(window && window.Module)) throw new Error('Must provide solc if not used in browser');
+    else this.solc = wrapper(window.Module);
   }
 
   loadVersion(version) {
