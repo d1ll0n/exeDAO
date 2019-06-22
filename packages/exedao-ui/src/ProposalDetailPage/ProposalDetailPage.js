@@ -1,12 +1,5 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import {
-  Paper,
-  Typography,
-  Grid,
-  LinearProgress,
-  ButtonBase,
-} from '@material-ui/core';
+import React from "react";
+import { Paper, Grid, Typography, LinearProgress } from "@material-ui/core";
 
 const getProposalHeader = (title, description) => {
   return (
@@ -27,36 +20,6 @@ const getProposalHeader = (title, description) => {
   );
 };
 
-/*const getProposalData = (shares, tribute) => {
-  return (
-    <Grid container direction="row" justify="center" alignItems="center">
-      <Grid
-        item
-        style={{ paddingRight: 15, borderRight: '0.05em solid black' }}
-      >
-        {proposalDataContainer('Shares', shares)}
-      </Grid>
-      <Grid item style={{ paddingLeft: 15 }}>
-        {proposalDataContainer('Tribute', tribute)}
-      </Grid>
-    </Grid>
-  );
-};
-
-const proposalDataContainer = (name, value) => {
-  return (
-    <Grid container direction="column" justify="center" alignItems="center">
-      <Grid item style={{ marginBottom: 5 }}>
-        <Typography variant="subtitle1">{name}</Typography>
-      </Grid>
-      <Grid item style={{ marginBottom: 5 }}>
-        <Typography variant="h6">{value}</Typography>
-      </Grid>
-    </Grid>
-  );
-};
-*/
-
 const getVotesBar = (classes, votesNeeded, currentVotes) => {
   return (
     <Grid container direction="column" justify="center" alignItems="center">
@@ -66,7 +29,7 @@ const getVotesBar = (classes, votesNeeded, currentVotes) => {
           value={currentVotes - votesNeeded / 100}
           classes={{
             root: classes.rootVotesBar,
-            bar: classes.votesBar,
+            bar: classes.votesBar
           }}
         />
       </Grid>
@@ -91,24 +54,58 @@ const getVotesBar = (classes, votesNeeded, currentVotes) => {
   );
 };
 
-const ProposalContainer = ({
+const topFrame = (title, description) => {
+  return (
+    <Grid container direction="row" justify="center" alignItems="center">
+      <Grid item>{getProposalHeader(title, description)}</Grid>
+    </Grid>
+  );
+};
+
+const midFrame = (functionName, functionArgs) => {
+  return (
+    <Grid
+      style={{ paddingTop: 50, paddingLeft: 40, marginBottom: 50 }}
+      container
+      direction="column"
+      justify="center"
+      alignItems="flex-start"
+    >
+      <Grid item>
+        <Typography>{functionName}</Typography>
+        {functionArgs.map((arg, i) => (
+          <Typography key={i}>{arg.name}</Typography>
+        ))}
+      </Grid>
+    </Grid>
+  );
+};
+
+const ProposalDetailPage = ({
   classes,
   title,
   description,
   votesNeeded,
   currentVotes,
   functionName,
-  functionArgs,
-  handleClick,
+  functionArgs
 }) => {
   return (
-    <ButtonBase onClick={handleClick} className={classes.button}>
-      <Paper className={classes.card} elevation={0}>
-        {getProposalHeader(title, description)}
-        {getVotesBar(classes, votesNeeded, currentVotes)}
-      </Paper>
-    </ButtonBase>
+    <Paper>
+      <Grid container justify="center">
+        <Grid
+          container
+          direction="column"
+          justifty="flex-start"
+          alignItems="flex-start"
+        >
+          <Grid item>{getProposalHeader(title, description)}</Grid>
+          <Grid item>{midFrame(functionName, functionArgs)}</Grid>
+        </Grid>
+        <Grid container>{getVotesBar(classes, votesNeeded, currentVotes)}</Grid>
+      </Grid>
+    </Paper>
   );
 };
 
-export default ProposalContainer;
+export default ProposalDetailPage;

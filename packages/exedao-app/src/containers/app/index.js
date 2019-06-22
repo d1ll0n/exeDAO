@@ -64,7 +64,7 @@ const mapDispatchToProps = (dispatch) =>
       requestWeb3,
       initWeb3,
       goHome: () => push('/'),
-      goProp: () => push('/proposal-form'),
+      goProp: () => push('/proposals'),
       goVote: () => push('/wallet/vote'),
     },
     dispatch,

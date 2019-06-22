@@ -81,8 +81,13 @@ class Proposals extends Component {
     this.setup()
     if (loading) return <h1>Loading...</h1>
     return <div>
+<<<<<<< HEAD
       {this.renderProposals()}
       <Button color='secondary' onClick={() => this.props.goToForm()}>Create Proposal</Button>
+=======
+      { this.renderProposals() }
+      { this.renderProposalDetail() }
+>>>>>>> 3e679a68bbd99363feeba7046665c86a6273a431
     </div>
   }
 }
