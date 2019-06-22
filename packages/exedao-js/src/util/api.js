@@ -6,13 +6,11 @@ const isBrowser = require('is-browser');
 const gatewayUrl = 'https://gateway.temporal.cloud/ipfs/';
 
 const toCid = (hash) => {
-  if (hash.length == 64 || hash.length == 66) {
-    const buf = Buffer.from(hash, 'hex');
-    const mh = multihashes.encode(buf, 'sha3-256');
-    const cid = new CID(1, 'raw', Buffer.from(mh, 'hex'), 'base32');
-    return cid.toBaseEncodedString();
-  }
-  return hash;
+  console.log(hash)
+  const buf = Buffer.from(hash.slice(2), 'hex');
+  const mh = multihashes.encode(buf, 'sha3-256')
+  const cid = new CID(1, 'raw', mh, 'base32');
+  return cid.toBaseEncodedString();
 }
 
 module.exports = class API {
@@ -105,16 +103,23 @@ module.exports = class API {
   }
 
   async getPrivate(fileHash) {
+    const hash = toCid(fileHash);
     await this.checkToken();
-    const url = `${this.apiUrl}dao/file/${fileHash}`;
-    return this.rp.get(url).then(res => res.json());
+    const url = `${this.apiUrl}dao/file/${hash}`;
+    return this.rp.get(url);
   }
 
   async getFile(fileHash) {
+    console.log(fileHash)
     const hash = toCid(fileHash);
+    console.log(hash)
     const url = `${gatewayUrl}${hash}`;
     const {data: file} = await rp.get(url)
-      .then(res => res.json())
+      .then(file => {
+        console.log(typeof file)
+        console.log(file)
+        return { data: JSON.parse(file) }
+      })
       .catch((e) => {
         console.error(e);
         return this.getPrivate(fileHash);
@@ -126,7 +131,7 @@ module.exports = class API {
     await this.checkToken();
     const url = `${this.apiUrl}dao/putProposal`;
     const options = { method: 'POST', uri: url, form: data, json: true };
-    const {data: {hash}} = await this.rp(options).then(res => res.json());
+    const {data: {hash}} = await this.rp(options);
     return hash;
   }
 }

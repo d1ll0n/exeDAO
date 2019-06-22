@@ -19,6 +19,7 @@
     "keccak": "^2.0.0",
     "memorystream": "^0.3.1",
     "multihashes": "^0.4.14",
+    "multihashing": "^0.3.3",
     "request-promise": "^4.2.4",
     "require-from-string": "^2.0.2",
     "web3-eth-abi": "^1.0.0-beta.55"

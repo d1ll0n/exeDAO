@@ -5,6 +5,8 @@ const Hasher = require('./util/hasher');
 const deploy = require('./deploy');
 const Compiler = require('./util/compiler');
 const API = require('./util/api');
+const {functionDescriptions} = require('./defaults');
+// const mhA = require('multihashing-async')
 
 module.exports = class exeDAO extends Contract {
   constructor(web3, userAddress, contract, apiUrl) {
@@ -12,12 +14,18 @@ module.exports = class exeDAO extends Contract {
     this.hasher = new Hasher(web3);
     this.api = new API(web3, userAddress, apiUrl);
     this.approvalRequirements = {};
-    this.functionDescriptions = {};
+    this.functionDescriptions = functionDescriptions;
   }
 
   static async deploy(web3, address, options) {
     const contract = await deploy(web3, address, options);
     return new exeDAO(web3, address, contract);
+  }
+
+  async init() {
+    await this.updateRequirements();
+    this.totalShares = await this.getTotalShares();
+    this.ownedShares = this.address ? await this.getShares(this.address) : 0
   }
 
   get compiler() {
@@ -28,9 +36,8 @@ module.exports = class exeDAO extends Contract {
   /* <LISTENERS> */
   async addExtensionListener(cb) {
     const blockNumber = await this.web3.eth.getBlockNumber()
-    this.contract.events.ExtensionAdded(
-      {fromBlock: blockNumber},
-      ({returnValues: {extensionIndex, metaHash}}) => {
+    this.contract.events.ExtensionAdded({fromBlock: blockNumber})
+      .on('data', ({returnValues: {extensionIndex, metaHash}}) => {
         console.log(`Got extension added event -- index ${extensionIndex} | meta hash ${metaHash}`);
         // this.updateExtension(metaHash)
         cb({extensionIndex, metaHash})
@@ -39,12 +46,29 @@ module.exports = class exeDAO extends Contract {
 
   async addProposalListener(cb) {
     const blockNumber = await this.web3.eth.getBlockNumber()
-    this.contract.events.ProposalSubmission(
-      {fromBlock: blockNumber},
-      ({returnValues: {proposalHash, metaHash}}) => {
-        console.log(`Got proposal submission event -- proposal hash ${proposalHash} | meta hash ${metaHash}`);
-        cb({proposalHash, metaHash})
-    })
+    this.contract.events.ProposalSubmission({fromBlock: blockNumber})
+      .on('data', ({returnValues: {proposalHash, metaHash, votesCast}}) => {
+        console.log(`Got proposal submission event -- proposal hash ${proposalHash} | meta hash ${metaHash} | votes cast ${votesCast}`);
+        cb({proposalHash, metaHash, votesCast})
+      })
+  }
+
+  async addVoteListener(cb) {
+    const blockNumber = await this.web3.eth.getBlockNumber()
+    this.contract.events.ProposalVote({fromBlock: blockNumber})
+      .on('data', ({returnValues: {proposalHash, votesCast}}) => {
+        console.log(`Got proposal submission event -- proposal hash ${proposalHash} | votes cast ${votesCast}`);
+        cb({proposalHash, votesCast})
+      })
+  }
+
+  async addExpirationListener(cb) {
+    const blockNumber = await this.web3.eth.getBlockNumber()
+    this.contract.events.ProposalExpiration({fromBlock: blockNumber})
+      .on('data', ({returnValues: {proposalHash}}) => {
+        console.log(`Got proposal expiration event -- proposal hash ${proposalHash}`);
+        cb({proposalHash})
+      })
   }
   /* </LISTENERS> */
 
@@ -84,14 +108,21 @@ module.exports = class exeDAO extends Contract {
   /* <UTILS> */
   hashProposal(method, ...args) {
     const data = this.contract.methods[method](...args).encodeABI();
-    return this.hasher.sha3(data);
+    return this.hasher.sha3Bytes(data);
   }
   /* </UTILS> */
 
   /* <VERIFIERS> */
   verifyJsonHash(expectHash, obj) {
     const hash = this.hasher.jsonSha3(obj);
-    return hash == expectHash;
+    const valid = hash == expectHash;
+    if (!valid) {
+      console.log(typeof obj)
+      console.log(obj)
+      console.log('real hash - ', hash)
+      console.log('expected hash - ', expectHash)
+    }
+    return valid;
   }
 
   async verifyProposalMeta(proposalHash, metadata, extMeta) {
@@ -159,6 +190,12 @@ module.exports = class exeDAO extends Contract {
   getBuyRequest(address) { return this.call('buyRequests', address); }
   getExtension(index) { return this.call('extensions', index); }
   getExtensions() { return this.call('getExtensions'); }
+  async getMetaData(metaHash) {
+    const metadata = await this.api.getFile(metaHash)
+    const valid = await this.verifyJsonHash(metaHash, metadata)
+    if (valid) return metadata;
+    else throw new Error('Could not verify hash')
+  }
   /* </GETTERS> */
 
   /* <PROPOSALS> */
@@ -167,10 +204,11 @@ module.exports = class exeDAO extends Contract {
   async sendProposal(method, gas, value, ...args) {
     if (!this.contract.methods[method]) throw new Error(`No method for ${method}`);
     const data = this.contract.methods[method](...args).encodeABI();
-    const proposalHash = this.hasher.sha3(data);
+    const proposalHash = this.hasher.sha3Bytes(data);
     let {votes, proposalIndex} = await this.getProposal(proposalHash);
     if (proposalIndex == '0') votes = 0;
     const signature = data.slice(0, 10);
+    console.log(signature)
     const requirement = this.approvalRequirements[signature];
     if (requirement == 0) throw new Error('Approval requirement not set, try setApprovalRequirement');
     const totalShares = await this.getTotalShares();
@@ -188,7 +226,7 @@ module.exports = class exeDAO extends Contract {
   removeExtension(address, gas) { return this.sendProposal('removeExtension', gas, 0, address); }
   setApprovalRequirement(sig, req, gas) { return this.sendProposal('setApprovalRequirement', gas, 0, sig, req); }
   submitWithMetaHash(proposalHash, metaHash, gas) {
-    return this.sendProposal('submitWithMetaHash', gas, 0, proposalHash, metaHash); 
+    return this.send('submitWithMetaHash', gas, 0, proposalHash, metaHash); 
   }
   /* </PROPOSALS> */
 }

@@ -1,5 +1,6 @@
 const multihashes = require('multihashes');
 const CID = require('cids');
+const {digest} = require('multihashing')
 
 /**
  * @dev the hash slinging slasher
@@ -9,13 +10,15 @@ class Hasher {
     this.soliditySha3 = web3.utils.soliditySha3;
   }
 
-  sha3(value) {
-    return this.soliditySha3({ t: 'bytes', v: value })
-  }
+  sha3(value) { return this.soliditySha3(value) }
+  
+  sha3Bytes(value) { return this.soliditySha3({ t: 'bytes', v: value }) }
 
   jsonSha3(obj) {
     const json = JSON.stringify(obj);
-    return this.sha3(json)
+    const buf = Buffer.from(json)
+    return '0x' + digest(buf, 'sha3-256').toString('hex')
+    // return this.sha3(Buffer.from(json))
   }
 
   toMh(shaHash) {
