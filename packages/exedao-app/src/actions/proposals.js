@@ -3,29 +3,39 @@ import { EXEDAO_ADD_PROPOSALS, EXEDAO_SET_PROPOSAL_DETAILS } from '../store/redu
 export const getOpenProposals = () => {
   return async (dispatch, getState) => {
     const exedao = getState().exedao.exedao;
-    const proposals = await exedao.getOpenProposals()
+    let proposals = await exedao.getOpenProposals()
     dispatch({ type: EXEDAO_ADD_PROPOSALS, proposals })
   }
 }
 
-const testProposal = {
-  function: 'mintShares',
-  arguments: ['0xa20D58D7dB00327e9d4597fEf9f50E955fd14A3F', 1200],
-  title: 'Test Proposal',
-  description: 'Do a test and send 1200 shares to a test address.'
-}
-
-export const sendTestProposal = () => {
+export const submitVote = (method, ...args) => {
   return async (dispatch, getState) => {
     const exedao = getState().exedao.exedao;
-    // data = {proposalHash, data, membersOnly, extension}
-    const proposalHash = exedao.hashProposal(testProposal.function, ...testProposal.arguments)
-    const data = { proposalHash, data: testProposal }
-    // exedao.api.putProposal
-    exedao.submitWithMetaHash()
+    const proposalHash = exedao.hashProposal(method, ...args);
+    await exedao.submitOrVote(proposalHash, 250000);
   }
 }
 
-/* export const sendProposal = (proposalData) => {
+export const submitProposal = async (exedao, proposalData) => { // proposalData = {function, arguments, title, description}
+  console.log(`submitting proposal`)
+  const proposalHash = exedao.hashProposal(proposalData.function, ...proposalData.arguments)
+  console.log(`proposal hash -- ${proposalHash}`)
+  const hasMeta = proposalData.title || proposalData.description
+  if (hasMeta) {
+    const metaHash = exedao.hasher.jsonSha3(proposalData)
+    console.log(`proposal meta hash -- ${metaHash}`)
+    await exedao.submitWithMetaHash(proposalHash, metaHash, 250000)
+    await exedao.api.putProposal({proposalHash, data: proposalData})
+  }
+  else return exedao.submitOrVote(proposalHash, 250000)
+}
 
-} */
+export const getProposalMetaData = (proposalHash, metaHash) => {
+  return async (dispatch, getState) => {
+    if (!proposalHash || !metaHash) return
+    const {exedao} = getState().exedao;
+    console.log(`getting details for ${proposalHash} meta hash ${metaHash}`)
+    const metadata = await exedao.getMetaData(metaHash)
+    dispatch({type: EXEDAO_SET_PROPOSAL_DETAILS, proposal: {proposalHash, ...metadata}})
+  }
+}

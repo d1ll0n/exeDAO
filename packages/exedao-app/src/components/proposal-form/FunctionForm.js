@@ -7,20 +7,29 @@ import Button from '@material-ui/core/Button';
 export default class FunctionForm extends Component {
   state = {values: {}}
 
-  componentDidMount = () => {
+  /* componentDidMount = () => {
     const {abi: {inputs}} = this.props;
-    const initial = inputs.reduce((obj, input) => ({...obj, [input.name]: ''}), {});
+    const initial = inputs.reduce((obj, input) => {
+      const {name, type} = input;
+      let val;
+      if (type.indexOf('[') >= 0) val = [];
+      else if (type == 'bool') val = false;
+      else if (type == 'tuple') val = {};
+      else val = ''
+      return {...obj, [name]: val}
+    }, {});
     this.setState({values: initial});
-  }
+  } */
 
   handleChange = (name, value) => {
     const { values } = this.state;
     this.setState({values: {...values, [name]: value }})
   }
 
-  renderInput = ({name, type}, i) => <AbiInput
+  renderInput = ({name, type, components}, i) => <AbiInput
     onChange={this.handleChange}
     type={type} name={name} key={i}
+    components={components}
     value={this.state.values[name]}
   />
 

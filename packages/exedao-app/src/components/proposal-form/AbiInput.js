@@ -20,9 +20,13 @@ const splitArr = value => {
 }
 
 class AbiInput extends Component {
-  state = { 
-    arrayInputs: [] 
-  };
+
+  isValid = (value) => {
+    const {type} = this.props;
+    if (['int', 'address'].some(t => type.indexOf(t) > -1)) return isHexOrNumeric(value);
+    else if (type.indexOf('fixed') > 0) return isFixed(value);
+    return true;
+  }
 
   handleChange = (e) => {
     e.preventDefault();
@@ -33,48 +37,53 @@ class AbiInput extends Component {
     if (this.isValid(value)) onChange(name, value)
   }
 
-  isValid = (value) => {
-    const {type} = this.props;
-    if (['int', 'address'].some(t => type.indexOf(t) > -1)) return isHexOrNumeric(value);
-    else if (type.indexOf('fixed') > 0) return isFixed(value);
-    return true;
+  handleArrayChange = (index, newValue) => {
+    const {value, onChange, name: thisName} = this.props;
+    const stateCopy = [...value]
+    stateCopy[index] = newValue;
+    onChange(thisName, stateCopy);
   }
 
-  handleArrayChange = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    e.nativeEvent.stopImmediatePropagation();
-    console.log("handleArrayChange");
+  handleTupleChange = (name, newValue) => {
+    const {value, onChange, name: thisName} = this.props;
+    const tupleInputs = {...value, [name]: newValue}
+    onChange(thisName, tupleInputs);
   }
 
   addInput = (e) => {
     e.preventDefault();
-    this.setState(prevState => ({
-      arrayInputs: [...prevState.arrayInputs, ""]
-    }));
+    const {value, onChange, name} = this.props;
+    onChange(name, [...value, ''])
   }
 
   removeInput = (key) => (e) => {
     e.preventDefault();
-    const stateCopy = this.state.arrayInputs;
+    const {value, onChange, name} = this.props;
+    const stateCopy = [...value];
     stateCopy.splice(key, 1);
-    this.setState({ arrayInputs: stateCopy})
+    onChange(name, stateCopy)
   }
 
   renderDynamicArray = (type) => {
+    const {value, onChange, name} = this.props;
+    if (!value) {
+      onChange(name, []);
+      return '';
+    }
+    
     return (
       <List>
         <IconButton onClick = { this.addInput }>
           <AddIcon/>
         </IconButton>
         {
-          Array(this.state.arrayInputs.length).fill(null).map((_, i) =>
+          Array(value.length).fill(null).map((_, i) =>
             <ListItem key = { i }>
               <AbiInput
                 onChange = { this.handleArrayChange }
                 name = { i }
                 type =  { type }
-                value = { this.state.arrayInputs[i]} 
+                value = { value[i]} 
               />
               <IconButton onClick = { this.removeInput(i) }>
                 <DeleteIcon/>
@@ -82,12 +91,16 @@ class AbiInput extends Component {
             </ListItem>
           )
         }
-      </List>    
+      </List>
     );
   }
 
   renderStaticArray = (type, size) => {
-    if (this.state.arrayInputs.length == 0) this.setState({ arrayInputs: Array.apply("", Array(size)) });
+    const {value, onChange, name} = this.props;
+    if (!value) {
+      onChange(name, Array.apply("", Array(size)));
+      return '';
+    }
     return (
       <List>
         {
@@ -97,7 +110,32 @@ class AbiInput extends Component {
                 onChange = { this.handleArrayChange }
                 name = { i }
                 type = { type }
-                value = { this.state.arrayInputs[i] } 
+                value = { value[i] } 
+              />      
+            </ListItem>
+          )
+        }
+      </List>
+    );
+  }
+
+  renderComponents = (components) => {
+    const {value, onChange, name: thisName} = this.props;
+    if (!value) {
+      onChange(thisName, components.reduce((obj, comp) => ({...obj, [comp.name]: ""}), {}))
+      return ''
+    }
+    
+    return (
+      <List>
+        {
+          components.map(({name, type}, i) => 
+            <ListItem key = { i }>
+              <AbiInput
+                onChange = { this.handleTupleChange }
+                name = { name }
+                type = { type }
+                value = { value[name] || ''} 
               />      
             </ListItem>
           )
@@ -113,24 +151,26 @@ class AbiInput extends Component {
   }
 
   render() {
-    const {onChange, name, type, value} = this.props;
-
-    if (isArray(type)) return this.renderArray(type)
-    else {
-      if (type == 'bool') return <FormControlLabel
+    const {onChange, name, type, components, value} = this.props;
+    if (isArray(type)) {
+      return (
+        <FormControlLabel
+        label={`${name} ( ${type} )`} control={<div>{this.renderArray(type)}</div>}/>
+      )
+    } 
+    if (type == 'tuple') return this.renderComponents(components)
+    if (type == 'bool') return <FormControlLabel
       label={`${name} (${type})`} control={
         <Switch
           label={`${name} (${type})`} checked={value}
           onChange={() => onChange(name, !value)}
         />
-      }/>;
-
-      return <TextField
-        label={`${name} (${type})`} value={value}
-        margin="normal" onChange={this.handleChange}
-        InputLabelProps={{ shrink: true }}
-      />;
-    }
+    }/>;
+    return <TextField
+      label={`${name} (${type})`} value={value}
+      margin="normal" onChange={this.handleChange}
+      InputLabelProps={{ shrink: true }}
+    />;
   }
 }
 

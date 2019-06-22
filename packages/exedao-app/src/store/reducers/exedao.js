@@ -13,12 +13,12 @@ const initialState = {
 }
 
 export default (state = initialState, action) => {
-    const {type, proposals, proposal, proposalHash, votes, exedao} = action
+    const {type, proposals, proposal, exedao} = action
     let _proposals
     switch (type) {
         case EXEDAO_SET:
             console.log('set exedao')
-            return { ...state, exedao }
+            return { ...state, exedao, loading: false }
 
         case EXEDAO_ADD_PROPOSAL:
             return {
@@ -29,22 +29,25 @@ export default (state = initialState, action) => {
         case EXEDAO_ADD_PROPOSALS:
             return {
                 ...state,
-                proposals: [...state.proposals, proposals]
+                proposals: [...state.proposals, ...proposals]
             }
 
         case EXEDAO_SET_PROPOSAL_DETAILS:
-            // get current proposals in state that do not match any of the new proposals
-            _proposals = state.proposals.filter(_p =>
-                !proposals.some(p => _p.proposalHash == p.proposalHash))
+            // get current proposals in state that do not match the new proposal
+            _proposals = state.proposals.map((_proposal) => {
+                if (_proposal.proposalHash == proposal.proposalHash) return {..._proposal, ...proposal}
+                return _proposal
+            })
             return {
                 ...state,
-                proposals: [..._proposals, ...proposals]
+                proposals: _proposals
             }
 
         case EXEDAO_ADD_VOTES:
+            const {proposalHash, votes} = proposal;
             _proposals = state.proposals.map((_proposal) => {
                 if (proposalHash == _proposal.proposalHash) return {..._proposal, votes: _proposal.votes + votes}
-                else return _proposal
+                return _proposal
             });
             return {
                 ...state,

@@ -16,9 +16,9 @@ import Proposals from '../proposals';
 
 class App extends Component {
   componentDidMount = () => {
-    this.props.requestWeb3();
+    // this.props.requestWeb3();
     // this.props.goHome();
-    // this.props.initWeb3();
+    this.props.initWeb3();
     // this.props.goProp()
   };
 
@@ -35,7 +35,7 @@ class App extends Component {
     <main>
       <Web3Modal />
       <Route exact path="/" component={Home} />
-      <Route exact path="/proposal-form" component={Proposal} /> 
+      <Route exact path="/submit-proposal" component={Proposal} /> 
       <Route exact path='/proposals' component={Proposals} />
     </main>
   );
