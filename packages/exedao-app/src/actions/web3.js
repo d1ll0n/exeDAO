@@ -9,7 +9,14 @@ export const setWeb3 = () => {
         const web3 = new Web3(window.web3.currentProvider || 'https://mainnet.infura.io/v3')
         const accounts = await web3.eth.getAccounts()
         console.log('accounts ', accounts.length)
-        dispatch({type: WEB3_SET, web3, accounts})
+        dispatch({type: WEB3_SET, web3, accounts, loggedIn: true})
+    }
+}
+
+export const initWeb3 = () => {
+    return async (dispatch) => {
+        const web3 = new Web3('http://localhost:8545');
+        dispatch({type: WEB3_SET, web3, accounts: [], loggedIn: false})
     }
 }
 

@@ -16,6 +16,7 @@ class Navbar extends Component {
   };
 
   handleChangeTab = (_, index) => {
+    console.log('change tab ', index)
     const { activeIndex, tabs } = this.state;
     if (index !== activeIndex) {
       this.setState({ activeIndex: index });
@@ -30,7 +31,7 @@ class Navbar extends Component {
     return (
       <AppBar
         tabNames={tabNames}
-        onChange={this.handleChangeTab}
+        handleChange={this.handleChangeTab}
         activeTabIndex={activeIndex}
       />
     );

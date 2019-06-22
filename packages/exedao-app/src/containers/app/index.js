@@ -5,22 +5,21 @@ import { Route, Link } from 'react-router-dom';
 import { push } from 'connected-react-router';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { requestWeb3 } from '../../actions/web3';
+import { requestWeb3, initWeb3 } from '../../actions/web3';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import WalletMaker from '../wallet/create';
-import WalletLoader from '../wallet/load';
-import WalletVoter from '../wallet/voting';
 import Home from '../home';
 import Navbar from '../navbar';
 import Web3Modal from '../web3-modal';
 import Proposal from '../../components/proposal-form';
+import Proposals from '../proposals';
 
 
 class App extends Component {
   componentDidMount = () => {
     this.props.requestWeb3();
     // this.props.goHome();
-    this.props.goProp()
+    // this.props.initWeb3();
+    // this.props.goProp()
   };
 
   renderHeader = () => <Navbar />;
@@ -37,9 +36,7 @@ class App extends Component {
       <Web3Modal />
       <Route exact path="/" component={Home} />
       <Route exact path="/proposal-form" component={Proposal} /> 
-      <Route exact path="/wallet/create" component={WalletMaker} />
-      <Route exact path="/wallet/load" component={WalletLoader} />
-      <Route exact path="/wallet/vote" component={WalletVoter} />
+      <Route exact path='/proposals' component={Proposals} />
     </main>
   );
 
@@ -65,6 +62,7 @@ const mapDispatchToProps = (dispatch) =>
   bindActionCreators(
     {
       requestWeb3,
+      initWeb3,
       goHome: () => push('/'),
       goProp: () => push('/proposal-form'),
       goVote: () => push('/wallet/vote'),

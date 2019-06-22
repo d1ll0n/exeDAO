@@ -3,12 +3,15 @@ import { connectRouter, routerMiddleware } from 'connected-react-router'
 import thunk from 'redux-thunk'
 import createHistory from 'history/createBrowserHistory'
 import rootReducer from './reducers'
+import createExedaoMiddleware from './exedao-middleware'
 
 export const history = createHistory()
+const exedaoMiddleware = createExedaoMiddleware();
 
 const initialState = {}
 const enhancers = []
-const middleware = [thunk, routerMiddleware(history)]
+const middleware = [thunk, routerMiddleware(history), exedaoMiddleware]
+
 
 if (process.env.NODE_ENV === 'development') {
   const devToolsExtension = window.__REDUX_DEVTOOLS_EXTENSION__

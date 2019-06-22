@@ -20,3 +20,11 @@ const abi = {
   "stateMutability": "nonpayable",
   "type": "function"
 }
+
+import { EXEDAO_ADD_PROPOSAL, EXEDAO_SET_PROPOSAL_DETAILS } from '../store/reducers/exedao';
+
+const getOpenProposals = () => {
+  return (dispatch, getState) => {
+    const exedao = get
+  }
+}
