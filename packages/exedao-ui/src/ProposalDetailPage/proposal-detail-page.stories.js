@@ -13,7 +13,17 @@ storiesOf(categoryName, module).add("Proposalsu Detailsu", () => {
     votesNeeded: number("votesNeeded", 69),
     currentVotes: number("currentVotes", 1),
     functionName: text("functionName", "Shitty function"),
-    functionArgs: array("functionArgs", [])
+    functionArgs: array("functionArgs", 
+      [ {name: "arg1", value: "one"},
+        {name: "arg2", value: "two"}, 
+        {name: "arg3", value: 
+          [ 
+            {name: "", value: "three"}, 
+            {name: "", value: "four"} 
+          ]
+        } 
+      ]
+    )
   };
 
   return <ProposalDetailPage {...defaultProps} />;

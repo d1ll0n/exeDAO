@@ -1,5 +1,6 @@
 import React from "react";
-import { Paper, Grid, Typography, LinearProgress } from "@material-ui/core";
+import { Paper, Grid, Typography, LinearProgress, List, ListItem, ListSubheader, Button } from "@material-ui/core";
+import FunctionArguments from '../FunctionArguments';
 
 const getProposalHeader = (title, description) => {
   return (
@@ -20,7 +21,7 @@ const getProposalHeader = (title, description) => {
   );
 };
 
-const getVotesBar = (classes, votesNeeded, currentVotes) => {
+const getVotesBar = (classes, votesNeeded, currentVotes, handleClick) => {
   return (
     <Grid container direction="column" justify="center" alignItems="center">
       <Grid item style={{ width: 219, marginTop: 50 }}>
@@ -50,6 +51,11 @@ const getVotesBar = (classes, votesNeeded, currentVotes) => {
           >{`${votesNeeded} Votes needed`}</Typography>
         </Grid>
       </Grid>
+      <Grid item>
+        <Button onClick = { handleClick }>
+          VOTE
+        </Button>
+      </Grid>
     </Grid>
   );
 };
@@ -72,10 +78,18 @@ const midFrame = (functionName, functionArgs) => {
       alignItems="flex-start"
     >
       <Grid item>
-        <Typography>{functionName}</Typography>
-        {functionArgs.map((arg, i) => (
-          <Typography key={i}>{arg.name}</Typography>
-        ))}
+          <List subheader = { <ListSubheader> { functionName } </ListSubheader> }>
+            {
+              functionArgs.map((arg, i) => (
+                <ListItem key = { i }>
+                  <FunctionArguments
+                    name = { arg.name }
+                    value = { arg.value }
+                  />
+                </ListItem>
+            ) )
+            }
+          </List>
       </Grid>
     </Grid>
   );
@@ -88,7 +102,8 @@ const ProposalDetailPage = ({
   votesNeeded,
   currentVotes,
   functionName,
-  functionArgs
+  functionArgs,
+  handleClick
 }) => {
   return (
     <Paper>
@@ -102,7 +117,7 @@ const ProposalDetailPage = ({
           <Grid item>{getProposalHeader(title, description)}</Grid>
           <Grid item>{midFrame(functionName, functionArgs)}</Grid>
         </Grid>
-        <Grid container>{getVotesBar(classes, votesNeeded, currentVotes)}</Grid>
+        <Grid container>{getVotesBar(classes, votesNeeded, currentVotes, handleClick)}</Grid>
       </Grid>
     </Paper>
   );
