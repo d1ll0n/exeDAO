@@ -1,15 +1,23 @@
 const bodyParser = require('body-parser');
 const cors = require('cors')
-const mh = require('multihashing-async');
+const multihashes = require('multihashes');
+const mhA = require('multihashing-async')
+const CID = require('cids');
 const fs = require('fs');
 const path = require('path');
 const {putFileSuccess, fileNotFound} = require('../lib/responses');
 
 const filesPath = path.join(__dirname, '..', 'data');
 if (!fs.existsSync(filesPath)) fs.mkdirSync(filesPath);
-const toPath = proposalHash => path.join(filesPath, proposalHash);
+const toPath = proposalHash => path.join(filesPath, proposalHash.toString('hex'));
 
-
+const toCid = async (hash) => {
+  const buf = Buffer.from(hash.slice(2), 'hex');
+  // mhA()
+  const mh = multihashes.encode(buf, 'sha3-256')
+  const cid = new CID(1, 'raw', mh, 'base32');
+  return cid.toBaseEncodedString();
+}
 
 module.exports = class HttpServer {
   constructor(app, middleware) {
@@ -35,10 +43,12 @@ module.exports = class HttpServer {
 
   async saveFile(filePath, file, membersOnly) {
     if (fs.existsSync(filePath)) throw new Error('File already uploaded.')
-    fs.writeFileSync(filePath, file);
+    fs.writeFileSync(filePath, Buffer.from(file));
     if (!membersOnly) {
       const rs = fs.createReadStream(filePath);
-      await temporal.uploadPublicFile(rs, 1);
+      const ret = await this.temporal.uploadPublicFile(rs, 1);
+      console.log('temporal response -- ', ret)
+      console.log(`https://gateway.temporal.cloud/ipfs/${ret}`)
     }
     return true;
   }
@@ -57,8 +67,10 @@ module.exports = class HttpServer {
     console.log(`got request /dao/putProposal`)
     this.exedao.verifyProposalMeta(proposalHash, data, extension).then(async () => {
       const file = JSON.stringify(data);
-      const fileHash = await mh(file, 'sha3-256');
+      const metahash = this.exedao.hasher.jsonSha3(data)
+      const fileHash = await toCid(metahash);
       const filePath = toPath(fileHash);
+      console.log('saved -- ', fileHash)
       if (extension && data.function == 'addExtension') {
         const extFile = JSON.stringify(extension);
         const extHash = await mh(extFile, 'sha3-256');
