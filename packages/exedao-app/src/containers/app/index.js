@@ -16,10 +16,10 @@ import Proposals from '../proposals';
 
 class App extends Component {
   componentDidMount = () => {
-    this.props.requestWeb3();
+    //this.props.requestWeb3();
     // this.props.goHome();
     // this.props.initWeb3();
-    // this.props.goProp()
+     this.props.goProp()
   };
 
   renderHeader = () => <Navbar />;
@@ -64,7 +64,7 @@ const mapDispatchToProps = (dispatch) =>
       requestWeb3,
       initWeb3,
       goHome: () => push('/'),
-      goProp: () => push('/proposal-form'),
+      goProp: () => push('/proposals'),
       goVote: () => push('/wallet/vote'),
     },
     dispatch,

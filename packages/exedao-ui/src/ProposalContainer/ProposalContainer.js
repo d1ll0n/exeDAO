@@ -8,7 +8,7 @@ import {
   ButtonBase,
 } from '@material-ui/core';
 
-const getProposalHeader = (title, creationDate, timeLeft) => {
+const getProposalHeader = (title, description) => {
   return (
     <Grid
       style={{ paddingTop: 50, paddingLeft: 40, marginBottom: 50 }}
@@ -21,16 +21,13 @@ const getProposalHeader = (title, creationDate, timeLeft) => {
         <Typography variant="h5">{title}</Typography>
       </Grid>
       <Grid item style={{ marginBottom: 5 }}>
-        <Typography variant="overline">{creationDate}</Typography>
-      </Grid>
-      <Grid item style={{ marginBottom: 5 }}>
-        <Typography variant="overline">{`Time Left: ${timeLeft}`}</Typography>
+        <Typography variant="overline">{`${description}`}</Typography>
       </Grid>
     </Grid>
   );
 };
 
-const getProposalData = (shares, tribute) => {
+/*const getProposalData = (shares, tribute) => {
   return (
     <Grid container direction="row" justify="center" alignItems="center">
       <Grid
@@ -58,14 +55,15 @@ const proposalDataContainer = (name, value) => {
     </Grid>
   );
 };
+*/
 
-const getVotesBar = (classes, yesVotes, noVotes) => {
+const getVotesBar = (classes, votesNeeded, currentVotes) => {
   return (
     <Grid container direction="column" justify="center" alignItems="center">
       <Grid item style={{ width: 219, marginTop: 50 }}>
         <LinearProgress
           variant="determinate"
-          value={yesVotes - noVotes / 100}
+          value={currentVotes - votesNeeded / 100}
           classes={{
             root: classes.rootVotesBar,
             bar: classes.votesBar,
@@ -81,12 +79,12 @@ const getVotesBar = (classes, yesVotes, noVotes) => {
         <Grid item>
           <Typography
             className={classes.votesLabel}
-          >{`${yesVotes} Yes Votes`}</Typography>
+          >{`${currentVotes} Current votes`}</Typography>
         </Grid>
         <Grid item>
           <Typography
             className={classes.votesLabel}
-          >{`${noVotes} No Votes`}</Typography>
+          >{`${votesNeeded} Votes needed`}</Typography>
         </Grid>
       </Grid>
     </Grid>
@@ -96,20 +94,18 @@ const getVotesBar = (classes, yesVotes, noVotes) => {
 const ProposalContainer = ({
   classes,
   title,
-  creationDate,
-  timeLeft,
-  shares,
-  tribute,
-  yesVotes,
-  noVotes,
+  description,
+  votesNeeded,
+  currentVotes,
+  functionName,
+  functionArgs,
   handleClick,
 }) => {
   return (
     <ButtonBase onClick={handleClick} className={classes.button}>
       <Paper className={classes.card} elevation={0}>
-        {getProposalHeader(title, creationDate, timeLeft)}
-        {getProposalData(shares, tribute)}
-        {getVotesBar(classes, yesVotes, noVotes)}
+        {getProposalHeader(title, description)}
+        {getVotesBar(classes, votesNeeded, currentVotes)}
       </Paper>
     </ButtonBase>
   );
