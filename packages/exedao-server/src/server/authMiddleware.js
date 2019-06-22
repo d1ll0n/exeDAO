@@ -3,11 +3,11 @@ const {soliditySha3} = require('web3-utils');
 const randomBytes = require('../lib/random');
 const jwt = require('../lib/jwt');
 
-const { tokenNotSupplied, badToken, loginSuccess, badLoginRequest, challengeResponse, notDaoMember } = require('./lib/responses');
+const { tokenNotSupplied, badToken, loginSuccess, badLoginRequest, challengeResponse, notDaoMember } = require('../lib/responses');
 
-const challengeHash = challengeToken => soliditySha3({t: 'bytes', v: challengeToken});
+const challengeHash = challengeToken => soliditySha3(challengeToken.toString('hex'));
 
-const getChallengeParams = challengeToken => [
+const getChallengeParams = (challengeToken, address) => [
   { type: 'string', name: 'Message', value: `I certify that I am the owner of ${address}` },
   { type: 'bytes32', name: 'Verification ID', value: challengeHash(challengeToken) }
 ]
@@ -24,9 +24,9 @@ class AuthMiddleware {
 
   verifyChallenge(challengeToken, signature) {
     const {address} = this.jwt.verify(challengeToken);
-    const challenge = getChallengeParams(challengeToken);
+    const challenge = getChallengeParams(challengeToken, address);
     const recovered = sigUtil.recoverTypedSignature({ data: challenge, sig: signature });
-    if (recovered !== address) throw new Error('Invalid signature');
+    if (recovered !== address.toLowerCase()) throw new Error('Invalid signature');
     return this.createToken(address);
   }
 
@@ -69,18 +69,21 @@ class AuthMiddleware {
     const {challengeToken, signature, address} = req.body;
     try {
       if (address) {
+        console.log(`got login request: ${address}`)
         const shares = await this.exedao.getShares(address);
         if (shares < 1) return res.status(500).json(notDaoMember);
         const challenge = this.createChallenge(address);
         return res.json(challengeResponse(challenge));
       }
       if (challengeToken && signature) {
+        console.log(`got login response: ${challengeToken} ${signature}`)
         const token = this.verifyChallenge(challengeToken, signature);
         req.token = token;
         return res.json(loginSuccess(token));
       }
       return res.status(400).json(badLoginRequest);
     } catch (err) {
+      console.log(err)
       return res.status(400).json(badLoginRequest);
     }
   }

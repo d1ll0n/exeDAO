@@ -7,7 +7,7 @@ const randomBytes = require('./random');
 const _get = (...args) => db.get(...args).catch(e => null);
 const _put = (...args) => db.put(...args);
 const getSecret = async () => {
-  const secret = await _get('jwt-secret')
+  let secret = await _get('jwt-secret')
   if (!secret) await _put('jwt-secret', (secret = randomBytes()));
   return secret;
 }
