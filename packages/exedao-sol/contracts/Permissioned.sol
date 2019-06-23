@@ -3,6 +3,7 @@ pragma experimental ABIEncoderV2;
 
 import "./DaoLib.sol";
 import "./Shared.sol";
+import "./SignatureUnpack.sol";
 
 /**
  * @title Permissioned
@@ -10,6 +11,7 @@ import "./Shared.sol";
 */
 contract Permissioned is Shared {
   using DaoLib for DaoLib.Proposal;
+  using SignatureUnpack for bytes;
 
   uint64 public proposalDuration;
   uint64 public lastExpiredProposal;
@@ -17,6 +19,7 @@ contract Permissioned is Shared {
   mapping(bytes32 => uint) public proposalIndices;
   mapping(bytes4 => uint8) public approvalRequirements;
   mapping(bytes32 => bytes32) public proposalMetaHashes;
+  mapping(address => mapping(uint256 => bool)) public offlineNonces;
 
   event ProposalSubmission(address indexed submitter, bytes32 indexed proposalHash, bytes32 metaHash, uint64 votesCast);
   event ProposalVote(address indexed voter, bytes32 indexed proposalHash, uint64 votesCast);
@@ -48,6 +51,21 @@ contract Permissioned is Shared {
 
   function setProposalDuration(uint64 duration) external {
     if (voteAndContinue()) proposalDuration = duration;
+  }
+
+  function supplyOfflineVotesWithCall(bytes calldata wrappedCalldata, bytes[] calldata sigs, uint256[] calldata nonces, bytes32[] calldata proposalHashes) external returns (bytes memory) {
+    for (uint256 i = 0; i < sigs.length; i++) {
+      address voter = sigs[i].recoverOffline(nonces[i], proposalHashes[i]);
+      require(!offlineNonces[voter][nonces[i]]);
+      offlineNonces[voter][nonces[i]] = true;
+      require(daoists[voter] > 0, "Signature supplied from non-daoist");
+      uint64 shares = daoists[voter];
+      uint256 index = proposalIndices[proposalHashes[i]];
+      _submitOrVote(voter, proposalHashes[i], shares, index);
+    }
+    (bool success, bytes memory retval) = address(this).delegatecall(wrappedCalldata);
+    // if this call throws it doesn't matter, allow anyone to pay the gas to submit offline signatures even in the absence of valid calldata
+    return retval;
   }
 
   function votesNeeded (uint64 votes, uint8 approvalRequirement)
@@ -121,13 +139,12 @@ contract Permissioned is Shared {
   function voteAndContinue() internal returns (bool) {
     bytes32 proposalHash = keccak256(msg.data);
     (uint64 shares, uint index, bool approved) = preVoteCheck(proposalHash);
-    // (uint index, bool isApproved) = _submitOrVote(proposalHash, true);
     if (approved) {
       delete proposals[index];
       delete proposalIndices[proposalHash];
       if (proposalMetaHashes[proposalHash] != 0) delete proposalMetaHashes[proposalHash];
       emit ProposalApproval(msg.sender, proposalHash);
-    } else _submitOrVote(proposalHash, shares, index);
+    } else _submitOrVote(msg.sender, proposalHash, shares, index);
     return approved;
   }
 
@@ -142,20 +159,20 @@ contract Permissioned is Shared {
   }
 
   /** @dev Create a proposal if it does not exist, vote on it otherwise. */
-  function _submitOrVote(bytes32 proposalHash, uint64 shares, uint index) internal {
+  function _submitOrVote(address voter, bytes32 proposalHash, uint64 shares, uint index) internal {
     if (index == 0) {
       uint _index = proposals.length;
       proposalIndices[proposalHash] = _index;
       proposals.push(DaoLib.Proposal(proposalHash, shares, uint64(block.number + proposalDuration)));
-      proposals[_index].voters[msg.sender] = true;
-      emit ProposalSubmission(msg.sender, proposalHash, proposalMetaHashes[proposalHash], shares);
+      proposals[_index].voters[voter] = true;
+      emit ProposalSubmission(voter, proposalHash, proposalMetaHashes[proposalHash], shares);
     } else {
       DaoLib.Proposal memory proposal = proposals[index];
       require(proposal.expiryBlock > block.number, "Proposal expired");
-      if (!proposals[index].voters[msg.sender]) {
-        proposals[index].voters[msg.sender] = true;
+      if (!proposals[index].voters[voter]) {
+        proposals[index].voters[voter] = true;
         proposals[index].votes = proposal.votes + shares;
-        emit ProposalVote(msg.sender, proposalHash, shares);
+        emit ProposalVote(voter, proposalHash, shares);
       }
     }
   }
@@ -163,7 +180,7 @@ contract Permissioned is Shared {
   function submitOrVote(bytes32 proposalHash) external returns(uint, uint) {
     uint64 shares = getShares();
     uint index = proposalIndices[proposalHash];
-    _submitOrVote(proposalHash, shares, index);
+    _submitOrVote(msg.sender, proposalHash, shares, index);
     DaoLib.Proposal memory proposal = proposals[index];
     return(proposal.votes, proposal.expiryBlock);
   }
@@ -178,7 +195,7 @@ contract Permissioned is Shared {
     uint64 shares = getShares();
     index = proposalIndices[proposalHash];
     require(index == 0, "Proposal already exists");
-    _submitOrVote(proposalHash, shares, index);
+    _submitOrVote(msg.sender, proposalHash, shares, index);
     proposalMetaHashes[proposalHash] = metaHash;
   }
 }
