@@ -1,7 +1,7 @@
 pragma solidity ^0.5.5;
 pragma experimental ABIEncoderV2;
 
-import "./ExeLib.sol";
+import "./lib/ExeLib.sol";
 import "./Permissioned.sol";
 
 contract Extendable is Permissioned {
@@ -30,7 +30,7 @@ contract Extendable is Permissioned {
 
   function addExtension(ExeLib.Extension memory extension) public {
     if (extension.useDelegate) require(
-      extension.bytecode.length > 0 && extension.bytecode.isPermissible(true),
+      extension.bytecode.length > 0 && extension.bytecode.isPermissible(),
       "Bytecode not allowed"
     );
     if (voteAndContinue()) {
@@ -38,9 +38,9 @@ contract Extendable is Permissioned {
         extension.extensionAddress = extension.bytecode.deploy();
         delete extension.bytecode;
       }
+      uint index = extensions.length;
       extensions.push(extension);
       bytes4[] memory funcSigs = extension.functionSignatures;
-      uint index = extensions.length - 1;
       for (uint i = 0; i < funcSigs.length; i++) extensionFor[funcSigs[i]] = index;
       emit ExtensionAdded(index, extension.metaHash);
     }

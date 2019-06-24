@@ -1,6 +1,11 @@
 pragma solidity ^0.5.5;
 
 library DaoLib {
+  struct TokenValue {
+    address tokenAddress;
+    uint256 value;
+  }
+
   struct Proposal {
     bytes32 proposalHash;
     uint64 votes;
@@ -17,6 +22,7 @@ library DaoLib {
   }
 
   struct BuyRequest {
+    bytes32 metaHash;
     uint lockedwei;
     uint64 amount;
   }

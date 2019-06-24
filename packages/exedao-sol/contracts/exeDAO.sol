@@ -17,19 +17,15 @@ contract exeDAO is Extendable {
   }
 
   function safeExecute(bytes calldata bytecode) external {
-    require(bytecode.isPermissible(false), "Bytecode not allowed");
-    if (voteAndContinue()) bytecode.delegateExecute();
-  }
-
-  function unsafeExecute(bytes calldata bytecode) external {
+    require(bytecode.isPermissible(), "Bytecode not allowed");
     if (voteAndContinue()) bytecode.delegateExecute();
   }
 
   /** @dev Lock some eth and make a request to buy shares. */
-  function requestShares(uint64 shares) external payable {
+  function requestShares(bytes32 metaHash, uint64 shares) external payable {
     require(buyRequests[msg.sender].lockedwei == 0, "Buy request pending");
     require(shares > 0, "Can not request 0 shares");
-    buyRequests[msg.sender] = DaoLib.BuyRequest(msg.value, shares);
+    buyRequests[msg.sender] = DaoLib.BuyRequest(metaHash, msg.value, shares);
   }
 
   /** @dev For buyer, cancel the offer and reclaim wei if a proposal has not been

@@ -9,7 +9,7 @@ library ExeLib {
     bytes4[] functionSignatures;
   }
 
-  function isPermissible (bytes memory bytecode, bool disallowDestruct)
+  function isPermissible (bytes memory bytecode)
   internal pure returns (bool) {
     uint size = bytecode.length;
     uint permissible = 1;
@@ -21,7 +21,7 @@ library ExeLib {
         case 0xf2 { permissible := 0 } // callcode
         case 0xf4 { permissible := 0 } // delegatecall
         case 0x55 { permissible := 0 } // sstore
-        case 0xff { if disallowDestruct { permissible := 0 } } // selfdestruct
+        case 0xff { permissible := 0 } // selfdestruct
         default {
           let isPush := and(lt(op, 0x80), gt(op, 0x5f))
           if eq(isPush, 0x1) { i := add(i, sub(op, 0x5f)) }

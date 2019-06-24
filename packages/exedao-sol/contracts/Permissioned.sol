@@ -1,16 +1,13 @@
 pragma solidity ^0.5.5;
 pragma experimental ABIEncoderV2;
 
-import "./DaoLib.sol";
 import "./Shared.sol";
-import "./SignatureUnpack.sol";
+import "./lib/SignatureUnpack.sol";
 
-/**
- * @title Permissioned
- * @dev Configurable permissions for function execution.
-*/
+/// @title Permissioned
+/// @notice Generic contract for creating, cancelling and processing proposals to execute functions.
+/// @dev Approval requirements are set per function signature.
 contract Permissioned is Shared {
-  using DaoLib for DaoLib.Proposal;
   using SignatureUnpack for bytes;
 
   uint64 public proposalDuration;
@@ -53,7 +50,12 @@ contract Permissioned is Shared {
     if (voteAndContinue()) proposalDuration = duration;
   }
 
-  function supplyOfflineVotesWithCall(bytes calldata wrappedCalldata, bytes[] calldata sigs, uint256[] calldata nonces, bytes32[] calldata proposalHashes) external returns (bytes memory) {
+  function supplyOfflineVotesWithCall(
+    bytes memory wrappedCalldata,
+    bytes[] memory sigs,
+    uint256[] memory nonces,
+    bytes32[] memory proposalHashes
+  ) public returns (bytes memory) {
     for (uint256 i = 0; i < sigs.length; i++) {
       address voter = sigs[i].recoverOffline(nonces[i], proposalHashes[i]);
       require(!offlineNonces[voter][nonces[i]]);
@@ -63,7 +65,7 @@ contract Permissioned is Shared {
       uint256 index = proposalIndices[proposalHashes[i]];
       _submitOrVote(voter, proposalHashes[i], shares, index);
     }
-    (bool success, bytes memory retval) = address(this).delegatecall(wrappedCalldata);
+    (, bytes memory retval) = address(this).delegatecall(wrappedCalldata);
     // if this call throws it doesn't matter, allow anyone to pay the gas to submit offline signatures even in the absence of valid calldata
     return retval;
   }
@@ -112,17 +114,18 @@ contract Permissioned is Shared {
     for (uint i = 0; i < size; i++) requirements[i] = approvalRequirements[funcSigs[i]];
   }
 
-  /** @dev Set the requirement for execution of a function. */
+  /// @dev Set the requirement for execution of a function.
+  /// @param funcSig The signature of the function which approval is being set for.
+  /// funcSig can not be the signature for setApprovalRequirement.
+  /// @param approvalRequirement Percentage of shares which must be exceeded for an approval to be accepted.
+  /// If approvalRequirement is 0, the function can not be called by anyone. If it is 255, it does not require approval.
   function setApprovalRequirement(bytes4 funcSig, uint8 approvalRequirement) external {
     require(funcSig != msg.sig, "Can not modify requirement for setApprovalRequirement");
-    require(
-      approvalRequirement < 101 || approvalRequirement == 255,
-      "Requirement must be percentage, 0 (disallowed) or 255 (no approval needed)"
-    );
+    require(approvalRequirement < 101 || approvalRequirement == 255, "Bad approvalRequirement");
     if (voteAndContinue()) approvalRequirements[funcSig] = approvalRequirement;
   }
 
-  /** @dev Cancel a proposal if it has expired. */
+  /// @dev Cancel a proposal if it has expired.
   function closeProposal(bytes32 proposalHash) external {
     uint index = proposalIndices[proposalHash];
     DaoLib.Proposal memory proposal = proposals[index];
@@ -135,7 +138,7 @@ contract Permissioned is Shared {
     }
   }
 
-  /** @dev Call _submitOrVote() and return true if the proposal is approved, false if not. */
+  /// @dev Call _submitOrVote() and return true if the proposal is approved, false if not.
   function voteAndContinue() internal returns (bool) {
     bytes32 proposalHash = keccak256(msg.data);
     (uint64 shares, uint index, bool approved) = preVoteCheck(proposalHash);
@@ -148,7 +151,7 @@ contract Permissioned is Shared {
     return approved;
   }
 
-  /// @dev determines whether a proposal would be accepted given the caller's votes
+  /// @dev Determines whether a proposal would be accepted given the caller's votes.
   function preVoteCheck(bytes32 proposalHash) internal view
   returns (uint64 shares, uint index, bool approved) {
     shares = getShares();
@@ -158,7 +161,7 @@ contract Permissioned is Shared {
     else approved = shares >= (totalNeeded - proposals[index].votes);
   }
 
-  /** @dev Create a proposal if it does not exist, vote on it otherwise. */
+  /// @dev Create a proposal if it does not exist, vote on it otherwise.
   function _submitOrVote(address voter, bytes32 proposalHash, uint64 shares, uint index) internal {
     if (index == 0) {
       uint _index = proposals.length;
