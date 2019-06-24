@@ -1,11 +1,11 @@
 import { createStore, applyMiddleware, compose } from 'redux'
 import { connectRouter, routerMiddleware } from 'connected-react-router'
 import thunk from 'redux-thunk'
-import createHistory from 'history/createBrowserHistory'
+import {createBrowserHistory} from 'history'
 import rootReducer from './reducers'
 import createExedaoMiddleware from './exedao-middleware'
 
-export const history = createHistory()
+export const history = createBrowserHistory()
 const exedaoMiddleware = createExedaoMiddleware();
 
 const initialState = {}

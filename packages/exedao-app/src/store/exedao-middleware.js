@@ -14,7 +14,8 @@ function execute(action, next, dispatch) {
 */
 
 export default function createExedaoMiddleware() {
-  const exeDAOAddress = '0xFCeEa18fF2C6c5f8c66f744CcD2C352ccFCd9bDC';
+  const exeDAOAddress = process.env.REACT_APP_CONTRACT_ADDRESS;
+  console.log(exeDAOAddress)
 
   async function setExedao(exedao, dispatch) {
     console.log('Adding proposal listener')
