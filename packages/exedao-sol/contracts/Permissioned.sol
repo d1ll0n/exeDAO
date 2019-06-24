@@ -4,12 +4,15 @@ pragma experimental ABIEncoderV2;
 import "./Shared.sol";
 import "./lib/SignatureUnpack.sol";
 
-/// @title Permissioned
-/// @notice Generic contract for creating, cancelling and processing proposals to execute functions.
-/// @dev Approval requirements are set per function signature.
+/**
+ * @title Permissioned
+ * @notice Generic contract for creating, cancelling and processing proposals to execute functions.
+ * @dev Approval requirements are set per function signature.
+ */
 contract Permissioned is Shared {
   using SignatureUnpack for bytes;
-
+  using DaoLib for DaoLib.Proposal;
+  
   uint64 public proposalDuration;
   uint64 public lastExpiredProposal;
   DaoLib.Proposal[] public proposals;
@@ -77,7 +80,7 @@ contract Permissioned is Shared {
     needed = votes >= totalNeeded ? 0 : totalNeeded-votes;
   }
 
-  /// @dev allows clients to retrieve index and proposal data in one call
+  /** @dev allows clients to retrieve index and proposal data in one call */
   function getProposal(bytes32 proposalHash) public view
   returns (DaoLib.ProposalOutput memory ret) {
     uint index = proposalIndices[proposalHash];
@@ -114,18 +117,20 @@ contract Permissioned is Shared {
     for (uint i = 0; i < size; i++) requirements[i] = approvalRequirements[funcSigs[i]];
   }
 
-  /// @dev Set the requirement for execution of a function.
-  /// @param funcSig The signature of the function which approval is being set for.
-  /// funcSig can not be the signature for setApprovalRequirement.
-  /// @param approvalRequirement Percentage of shares which must be exceeded for an approval to be accepted.
-  /// If approvalRequirement is 0, the function can not be called by anyone. If it is 255, it does not require approval.
+  /**
+   * @dev Set the requirement for execution of a function.
+   * @param funcSig The signature of the function which approval is being set for.
+   * funcSig can not be the signature for setApprovalRequirement.
+   * @param approvalRequirement Percentage of shares which must be exceeded for an approval to be accepted.
+   * If approvalRequirement is 0, the function can not be called by anyone. If it is 255, it does not require approval.
+   */
   function setApprovalRequirement(bytes4 funcSig, uint8 approvalRequirement) external {
     require(funcSig != msg.sig, "Can not modify requirement for setApprovalRequirement");
     require(approvalRequirement < 101 || approvalRequirement == 255, "Bad approvalRequirement");
     if (voteAndContinue()) approvalRequirements[funcSig] = approvalRequirement;
   }
 
-  /// @dev Cancel a proposal if it has expired.
+  /** @dev Cancel a proposal if it has expired. */
   function closeProposal(bytes32 proposalHash) external {
     uint index = proposalIndices[proposalHash];
     DaoLib.Proposal memory proposal = proposals[index];
@@ -138,7 +143,7 @@ contract Permissioned is Shared {
     }
   }
 
-  /// @dev Call _submitOrVote() and return true if the proposal is approved, false if not.
+  /** @dev Call _submitOrVote() and return true if the proposal is approved, false if not. */
   function voteAndContinue() internal returns (bool) {
     bytes32 proposalHash = keccak256(msg.data);
     (uint64 shares, uint index, bool approved) = preVoteCheck(proposalHash);
@@ -151,7 +156,7 @@ contract Permissioned is Shared {
     return approved;
   }
 
-  /// @dev Determines whether a proposal would be accepted given the caller's votes.
+  /** @dev Determines whether a proposal would be accepted given the caller's votes. */
   function preVoteCheck(bytes32 proposalHash) internal view
   returns (uint64 shares, uint index, bool approved) {
     shares = getShares();
@@ -161,7 +166,7 @@ contract Permissioned is Shared {
     else approved = shares >= (totalNeeded - proposals[index].votes);
   }
 
-  /// @dev Create a proposal if it does not exist, vote on it otherwise.
+  /** @dev Create a proposal if it does not exist, vote on it otherwise. */
   function _submitOrVote(address voter, bytes32 proposalHash, uint64 shares, uint index) internal {
     if (index == 0) {
       uint _index = proposals.length;
@@ -188,12 +193,14 @@ contract Permissioned is Shared {
     return(proposal.votes, proposal.expiryBlock);
   }
 
-  /// @notice Create a proposal and set an ipfs hash for finding data about it.
-  /// @dev The calldata for a proposal can be uploaded to IPFS with keccak sha256 as the hash algorithm,
-  /// making this function unnecessary for proposals where the input can easily be decoded and no additional information is needed.
-  /// For proposals to execute code or add extensions, it is useful to be able to share the raw code which compiles
-  /// to the contract bytecode for easy verification of what is being executed without needing to audit the bytecode.
-  /// For extra security, the IPFS hash could point to ciphertext which only daoists can decrypt via some key exchange.
+  /**
+   * @notice Create a proposal and set an ipfs hash for finding data about it.
+   * @dev The calldata for a proposal can be uploaded to IPFS with keccak sha256 as the hash algorithm,
+   * making this function unnecessary for proposals where the input can easily be decoded and no additional information is needed.
+   * For proposals to execute code or add extensions, it is useful to be able to share the raw code which compiles
+   * to the contract bytecode for easy verification of what is being executed without needing to audit the bytecode.
+   * For extra security, the IPFS hash could point to ciphertext which only daoists can decrypt via some key exchange.
+   */
   function submitWithMetaHash(bytes32 proposalHash, bytes32 metaHash) external returns(uint index) {
     uint64 shares = getShares();
     index = proposalIndices[proposalHash];

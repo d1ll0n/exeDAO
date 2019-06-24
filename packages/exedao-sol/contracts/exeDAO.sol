@@ -9,10 +9,10 @@ contract exeDAO is Extendable {
     bytes4[] memory funcSigs, uint8[] memory requirements
   ) public payable Extendable(shares, _proposalDuration, funcSigs, requirements) {}
 
-  uint minimumRequestValue;
+  uint256 minimumRequestValue;
   mapping(address => DaoLib.BuyRequest) public buyRequests;
 
-  function setMinimumRequestValue(uint value) external {
+  function setMinimumRequestValue(uint256 value) external {
     if (voteAndContinue()) minimumRequestValue = value;
   }
 
@@ -25,11 +25,17 @@ contract exeDAO is Extendable {
   function requestShares(bytes32 metaHash, uint64 shares) external payable {
     require(buyRequests[msg.sender].lockedwei == 0, "Buy request pending");
     require(shares > 0, "Can not request 0 shares");
-    buyRequests[msg.sender] = DaoLib.BuyRequest(metaHash, msg.value, shares);
+    buyRequests[msg.sender] = DaoLib.BuyRequest({
+      metaHash: metaHash,
+      lockedwei: msg.value,
+      amount: shares
+    });
   }
 
-  /** @dev For buyer, cancel the offer and reclaim wei if a proposal has not been
-  * started by a daoist or has expired. For daoists, vote to accept the offer. */
+  /**
+   * @dev For buyer, cancel the offer and reclaim wei if a proposal has not been
+   * started by a daoist or has expired. For daoists, vote to accept the offer.
+  */
   function executeBuyOffer(address applicant) external {
     DaoLib.BuyRequest memory request = buyRequests[applicant];
     require(request.lockedwei > 0, "No buy offer");

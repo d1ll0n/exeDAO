@@ -1,6 +1,8 @@
+pragma solidity ^0.5.5;
+
 library SignatureUnpack {
   function recoverOffline(bytes memory sig, uint256 nonce, bytes32 callHash) internal pure returns (address recovered) {
-    bytes32 msg = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", keccak256(abi.encodePacked(callHash, nonce))));
+    bytes32 msgHash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", keccak256(abi.encodePacked(callHash, nonce))));
     uint8 v;
     bytes32 r;
     bytes32 s;
@@ -9,6 +11,6 @@ library SignatureUnpack {
       r := mload(add(sig, 0x21))
       s := mload(add(sig, 0x41))
     }
-    recovered = ecrecover(msg, v, r, s);
+    recovered = ecrecover(msgHash, v, r, s);
   }
 }

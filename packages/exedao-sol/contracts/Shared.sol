@@ -5,19 +5,21 @@ import "./lib/SafeMath.sol";
 import "./lib/IERC20.sol";
 import "./lib/DaoLib.sol";
 
-/// @title Shared
-/// @author Dillon Kellar, Raymond Pulver
-/// @notice Keeps track of who owns shares in a DAO and provides a method for burning shares in exchange for ether owned by the contract.
-/// @dev Does not expose any external methods for giving shares, must be handled by child
+/**
+ * @title Shared
+ * @author Dillon Kellar, Raymond Pulver
+ * @notice Keeps track of who owns shares in a DAO and provides a method for burning shares in exchange for ether owned by the contract.
+ * @dev Does not expose any external methods for giving shares, must be handled by child
+ */
 contract Shared {
-  using SafeMath for uint;
+  using SafeMath for uint256;
   using SafeMath for uint64;
 
-  uint256 multiplier = 10e12;
+  uint256 multiplier = 2 finney;
   uint64 public totalShares;
   mapping(address => uint64) public daoists;
   address[] public tokens;
-  mapping(address => uint) public tokenIndices;
+  mapping(address => uint256) public tokenIndices;
 
   constructor(uint64 shares) public payable {
     _mintShares(msg.sender, shares);
@@ -76,7 +78,7 @@ contract Shared {
     emit TokenTransferred(tokenAddress, recipient, amount);
   }
 
-  function _receiveToken(address tokenAddress, address sender, uint256 amount) internal {
+  function _receiveToken(address tokenAddress, address sender, uint256 amount) public {
     require(tokens[tokenIndices[tokenAddress]] != address(0), "exeDAO: Token not supported");
     require(IERC20(tokenAddress).transferFrom(sender, address(this), amount), "exeDAO: transferFrom failed.");
     emit TokenReceived(tokenAddress, sender, amount);

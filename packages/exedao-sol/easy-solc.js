@@ -2,9 +2,12 @@ const solc = require('solc')
 const path = require('path')
 const fs = require('fs')
 
-const findImports = (importPath) => ({
-  contents: fs.readFileSync(path.join(__dirname, 'contracts', importPath), 'utf8')
-})
+const findImports = (importPath) => {
+  console.log(importPath)
+  return {
+    contents: fs.readFileSync(path.join(__dirname, 'contracts', importPath), 'utf8')
+  }
+}
 
 const easySolc = (entryFile, src, returnAll) => {
   const out = JSON.parse(solc.compile(JSON.stringify({
@@ -29,10 +32,12 @@ const easySolc = (entryFile, src, returnAll) => {
     const toThrow = new Error('solc error, see "errors" property');
     toThrow.errors = out.errors;
     console.log(out.errors)
+    console.log(out)
     throw toThrow;
   }
+  console.log(out)
   const output = {};
-  for (let contractName of Object.keys(out.contracts).map(k => k.replace('.sol', ''))) {
+  for (let contractName of ['Shared', 'Extendable', 'exeDAO', 'Permissioned']) {
     const {
       abi,
       evm: {

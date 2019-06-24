@@ -6,10 +6,12 @@ library MultiSigLib {
     prefixedHash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", approvalHash));
   }
 
-  /// @dev Extract a single signature from a byte array of signatures
-  /// @param signatures Byte array of signatures
-  /// @param index Index of the signature in the byte array
-  /// @notice taken from https://github.com/argentlabs/argent-contracts/blob/develop/contracts/MultiSigWallet.sol
+  /**
+   * @dev Extract a single signature from a byte array of signatures
+   * @param signatures Byte array of signatures
+   * @param index Index of the signature in the byte array
+   * @notice taken from https://github.com/argentlabs/argent-contracts/blob/develop/contracts/MultiSigWallet.sol
+  */
   function splitSignature(bytes memory signatures, uint256 index) internal pure
   returns (uint8 v, bytes32 r, bytes32 s) {
     // we jump 32 (0x20) as the first slot of bytes contains the length
