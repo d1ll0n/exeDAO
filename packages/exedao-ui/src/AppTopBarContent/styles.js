@@ -9,6 +9,7 @@ const styles = (theme) => ({
     flexGrow: 1,
   },
   logo: {
+    maxHeight: 70,
     fontSize: 18,
     letterSpacing: 1,
     color: theme.palette.palette.primaryBlue,

@@ -2,11 +2,12 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Toolbar, Typography } from '@material-ui/core';
 import TabsNav from '../TabsNav';
+import ExedaoLogo from './exedao-logo.png'
 
 const AppBar = ({ classes, tabNames, activeTabIndex, handleChange }) => (
   <Toolbar disableGutters className={classes.toolbar}>
     <div className={classes.logoWrapper}>
-      <Typography className={classes.logo}>EXEDAO</Typography>
+      <img src={ExedaoLogo} className={classes.logo} />
     </div>
     <div className={classes.tabsWrapper}>
       <TabsNav

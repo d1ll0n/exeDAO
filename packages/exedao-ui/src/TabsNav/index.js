@@ -16,7 +16,7 @@ const TabsNav = ({
     <Tabs
       value={activeTabIndex}
       variant={variant}
-      handleChange={handleChange}
+      onChange={handleChange}
       classes={{
         flexContainer: classes.flexContainer,
         indicator: classes.indicator,
