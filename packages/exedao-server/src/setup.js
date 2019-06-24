@@ -4,7 +4,7 @@ const {exeDAO} = require('exedao-js');
 const Temporal = require('./lib/temporal');
 // const rpcCall = require('kool-makerpccall');
 
-let {deployed: contractAddress, ethnet, temporaluser, temporalpass} = process.env;
+let {contractAddress, ethnet, temporaluser, temporalpass} = process.env;
 const provider = ethnet == 'ganache'
   ? 'http://localhost:8545' : `wss://${ethnet}.infura.io/ws/v3`;
 
