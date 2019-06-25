@@ -37,4 +37,4 @@ for (let req of defaultFunctions) {
 const shares = 1000;
 const duration = 10000;
 
-module.exports = { duration, requirements, shares, signatures, gas: 4700000, value: 0, signatureByName, functionDescriptions }
+module.exports = { duration, requirements, shares, signatures, gas: 6.7e6, value: 0, signatureByName, functionDescriptions }
