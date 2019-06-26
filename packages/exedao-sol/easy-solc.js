@@ -1,15 +1,14 @@
-const solc = require('solc')
+let solc = require('solc')
 const path = require('path')
 const fs = require('fs')
 
-const findImports = (importPath) => {
-  console.log(importPath)
-  return {
-    contents: fs.readFileSync(path.join(__dirname, 'contracts', importPath), 'utf8')
-  }
-}
+const findImports = (importPath) => ({
+  contents: fs.readFileSync(path.join(__dirname, 'contracts', importPath), 'utf8')
+});
 
-const easySolc = (entryFile, src, returnAll) => {
+const stripFileName = (filePath) => filePath.match(/(\w+\/)*([\w]*).sol/)[2];
+
+const compile = (entryFile, src, returnAll) => {
   const out = JSON.parse(solc.compile(JSON.stringify({
     language: 'Solidity',
     sources: {
@@ -32,12 +31,11 @@ const easySolc = (entryFile, src, returnAll) => {
     const toThrow = new Error('solc error, see "errors" property');
     toThrow.errors = out.errors;
     console.log(out.errors)
-    console.log(out)
     throw toThrow;
   }
-  console.log(out)
   const output = {};
-  for (let contractName of ['Shared', 'Extendable', 'exeDAO', 'Permissioned']) {
+  for (let filePath of Object.keys(out.contracts)) {
+    const fileName = stripFileName(filePath)
     const {
       abi,
       evm: {
@@ -48,15 +46,22 @@ const easySolc = (entryFile, src, returnAll) => {
           object: deployedBytecode
         }
       }
-    } = out.contracts[contractName + '.sol'][contractName];
-    output[contractName] = {
+    } = out.contracts[filePath][fileName];
+    output[filePath] = {
       abi,
       bytecode: '0x' + bytecode,
       deployedBytecode: '0x' + deployedBytecode
     }
   }
-  if (!returnAll) return output[entryFile];
+  if (!returnAll) return output[entryFile + '.sol'];
   return output;
 };
 
-module.exports = easySolc;
+function setSolc(_solc) {
+  solc = _solc
+}
+
+module.exports = {
+  compile,
+  setSolc
+};

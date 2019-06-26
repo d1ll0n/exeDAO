@@ -1,5 +1,5 @@
 describe('Contract Tests', () => {
-  require('./testShared')
+  require('./testBase')
   require('./testPermissioned')
   require('./testExtendable')
 })

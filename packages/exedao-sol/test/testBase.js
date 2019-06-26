@@ -1,8 +1,9 @@
 const {expect} = require('chai')
 const Web3 = require('web3')
-const web3 = new Web3('http://localhost:8545')
+const ganache = require('ganache-cli')
+const web3 = new Web3(ganache.provider())
 
-const {bytecode, abi} = require('../build/Shared')
+const {bytecode, abi} = require('../build/BaseDAO')
 let contract, accounts
 
 before(async () => {
@@ -12,15 +13,15 @@ before(async () => {
 
 const deploy = (address, shares) => new web3.eth.Contract(abi)
   .deploy({ data: bytecode, arguments: [shares] })
-  .send({ from: address, gas: 4700000, value: 100000000000000 })
+  .send({ from: address, gas: 5700000, value: 100000000000000 })
 
-describe('Shared.sol', () => {
+describe('BaseDAO.sol', () => {
   it('Should have deployed a shared contract', () => {
     expect(contract._address).exist
   })
 
   it('Should initialize shares', async () => {
-    const shares = await contract.methods.daoists(accounts[0]).call()
+    const {shares} = await contract.methods.getDaoist(accounts[0]).call()
     expect(shares).to.eq('1000')
   })
 

@@ -1,7 +1,13 @@
 pragma solidity ^0.5.5;
 
 library MultiSigLib {
-  function prefixHash(uint proposalIndex, bytes32 proposalHash) internal pure returns (bytes32 prefixedHash) {
+  struct SignedCallInput {
+    bytes callData;
+    uint256 nonces; // Only provided if the proposal does not exist yet.
+    bytes signatures;
+  }
+
+  function prefixHash(bytes32 proposalHash, uint256 proposalIndex) internal pure returns (bytes32 prefixedHash) {
     bytes32 approvalHash = keccak256(abi.encodePacked(proposalIndex, proposalHash));
     prefixedHash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", approvalHash));
   }
@@ -22,6 +28,6 @@ library MultiSigLib {
       s := mload(add(signatures, add(0x40,mul(0x41,index))))
       v := and(mload(add(signatures, add(0x41,mul(0x41,index)))), 0xff)
     }
-    require(v == 27 || v == 28, "MSW: Invalid v");
+    require(v == 27 || v == 28, "ExeDAO: Invalid v");
   }
 }

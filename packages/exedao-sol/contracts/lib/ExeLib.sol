@@ -11,8 +11,8 @@ library ExeLib {
 
   function isPermissible (bytes memory bytecode)
   internal pure returns (bool) {
-    uint size = bytecode.length;
-    uint permissible = 1;
+    uint256 size = bytecode.length;
+    uint256 permissible = 1;
     assembly {
       let ptr := add(bytecode, 0x20)
       for { let i := 0 } and(lt(i, size), permissible) { i := add(i, 0x1) } {
@@ -32,7 +32,7 @@ library ExeLib {
   }
 
   function deploy(bytes memory bytecode) internal returns (address extAddress) {
-    uint size = bytecode.length;
+    uint256 size = bytecode.length;
     assembly {
       let start := add(bytecode, 0x20)
       extAddress := create(0, start, size)
@@ -40,20 +40,23 @@ library ExeLib {
   }
 
   function delegateExecute(bytes memory bytecode) internal {
-    uint size = bytecode.length;
+    uint256 size = bytecode.length;
     assembly {
       let start := add(bytecode, 0x20)
       let delegateTo := create(0, start, size)
       let retptr := mload(0x40)
       let delegateSuccess := delegatecall(gas, delegateTo, 0, 0, retptr, 0)
       let retsize := returndatasize
-      returndatacopy(retptr, 0, retsize)
+      returndatacopy(retptr, 0, returndatasize)
+      if iszero(delegateSuccess) { revert(retptr, returndatasize) }
       let freeptr := add(retptr, retsize)
       mstore(freeptr, 0x41c0e1b500000000000000000000000000000000000000000000000000000000)
       let selfdestructSuccess := call(gas, delegateTo, 0, freeptr, 0x20, freeptr, 0)
-      let success := and(delegateSuccess, selfdestructSuccess)
-      if success { return(retptr, retsize) }
-      revert(0, 0)
+      if iszero(selfdestructSuccess) {
+        returndatacopy(retptr, 0, returndatasize)
+        revert(retptr, returndatasize)
+      }
+      return(retptr, retsize)
     }
   }
 
@@ -65,7 +68,7 @@ library ExeLib {
       let delegateSuccess := delegatecall(gas, delegateTo, startCalldata, calldatasize, retptr, 0)
       returndatacopy(retptr, 0, returndatasize)
       if delegateSuccess { return (retptr, returndatasize) }
-      revert(0, 0)
+      revert(retptr, returndatasize)
     }
   }
 
@@ -77,13 +80,13 @@ library ExeLib {
       let callSuccess := call(gas, callAddress, callvalue, startCalldata, calldatasize, retptr, 0)
       returndatacopy(retptr, 0, returndatasize)
       if callSuccess { return (retptr, returndatasize) }
-      revert(0, 0)
+      revert(retptr, returndatasize)
     }
   }
   
   function bytecodeAt(address deployedAddress)
   internal view returns (bytes memory bytecode) {
-    uint size;
+    uint256 size;
     assembly { size := extcodesize(deployedAddress) }
     bytecode = new bytes(size);
     assembly { extcodecopy(deployedAddress, add(bytecode, 0x20), 0, size) }
