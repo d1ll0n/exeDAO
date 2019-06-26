@@ -26,7 +26,7 @@ const build = () => {
     for (const filePath of Object.keys(compiled)) {
       mkdirMany(partialPaths(filePath));
       const jsonPath = filePath.replace('.sol', '.json')
-      fs.writeFileSync(path.join(buildPath, jsonPath), JSON.stringify(compiled[filePath]));
+      fs.writeFileSync(path.join(buildPath, jsonPath), JSON.stringify(compiled[filePath], null, 2));
       console.log(`saved ${filePath} to ${jsonPath}`)
     }
   } catch (e) {

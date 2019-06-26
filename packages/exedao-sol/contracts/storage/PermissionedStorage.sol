@@ -30,6 +30,18 @@ contract PermissionedStorage {
     for (uint256 i = 0; i < size; i++) requirements[i] = _approvalRequirements[funcSigs[i]];
   }
 
+  /** @dev allows clients to retrieve index and proposal data in one call */
+  function getProposal(bytes32 proposalHash) external view
+  returns (Proposals.ProposalOutput memory ret) {
+    Indices.Index memory index = _proposalIndices[proposalHash];
+    require(index.exists, "ExeDAO: Proposal not found");
+    Proposals.Proposal memory proposal = _proposals[index.index];
+    ret = Proposals.ProposalOutput(
+      proposalHash, _proposalMetaHashes[proposalHash],
+      proposal.votes, proposal.expiryBlock, index.index
+    );
+  }
+
   function getOpenProposals() external view
   returns (Proposals.ProposalOutput[] memory proposals) {
     uint256 size = _proposals.length - _lastExpiredProposal - 1;
@@ -45,15 +57,8 @@ contract PermissionedStorage {
     }
   }
 
-  /** @dev allows clients to retrieve index and proposal data in one call */
-  function getProposal(bytes32 proposalHash) external view
-  returns (Proposals.ProposalOutput memory ret) {
-    Indices.Index memory index = _proposalIndices[proposalHash];
-    require(index.exists, "ExeDAO: Proposal not found");
-    Proposals.Proposal memory proposal = _proposals[index.index];
-    ret = Proposals.ProposalOutput(
-      proposalHash, _proposalMetaHashes[proposalHash],
-      proposal.votes, proposal.expiryBlock, index.index
-    );
+  function getProposalMetaHash(bytes32 proposalHash)
+  external view returns(bytes32 metaHash) {
+    return _proposalMetaHashes[proposalHash];
   }
 }

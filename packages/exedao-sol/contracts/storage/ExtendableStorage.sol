@@ -17,10 +17,14 @@ contract ExtendableStorage {
   ExeLib.Extension[] internal _extensions;
   mapping(bytes4 => Indices.Index) internal _extensionFor;
 
+  function getExtension(uint256 index) external view returns (ExeLib.Extension memory) {
+    return _extensions[index];
+  }
+
   function getExtensions() external view
   returns (ExeLib.Extension[] memory) { return _extensions; }
 
-  function extensionFor(bytes4 funcSig) external view
+  function getExtensionFor(bytes4 funcSig) external view
   returns (ExeLib.Extension memory extension) {
     Indices.Index memory index = _extensionFor[funcSig];
     require(index.exists, "ExeDAO: Extension not found");

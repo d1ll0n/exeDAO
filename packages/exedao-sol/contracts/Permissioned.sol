@@ -43,6 +43,22 @@ contract Permissioned is IPermissioned, BaseDAO, PermissionedStorage {
     if (_voteAndContinue()) _mintShares(recipient, amount);
   }
 
+  function addToken(address tokenAddress) external {
+    if (_voteAndContinue()) _addToken(tokenAddress);
+  }
+
+  function approveTokenTransfer(address tokenAddress, address spender, uint256 amount) external {
+    if (_voteAndContinue()) _approveTokenTransfer(tokenAddress, spender, amount);
+  }
+
+  function transferToken(address tokenAddress, address recipient, uint256 amount) external {
+    if (_voteAndContinue()) _transferToken(tokenAddress, recipient, amount);
+  }
+
+  function receiveToken(address tokenAddress, address sender, uint256 amount) external {
+    if (_voteAndContinue()) _receiveToken(tokenAddress, sender, amount);
+  }
+
   /**
    * @dev Set the requirement for execution of a function.
    * @param funcSig The signature of the function which approval is being set for.
@@ -136,9 +152,11 @@ contract Permissioned is IPermissioned, BaseDAO, PermissionedStorage {
    */
   function _preProcessProposal(bytes32 proposalHash) internal view
   returns (uint64 shares, Indices.Index memory index, bool approved) {
-    shares = _getShares();
-    uint64 totalNeeded = Proposals.votesRemaining(_totalShares, 0, _approvalRequirements[msg.sig]);
+    uint8 approvalRequirement = _approvalRequirements[msg.sig];
     index = _proposalIndices[proposalHash];
+    if (approvalRequirement == 255) return (0, index, true);
+    shares = _getShares();
+    uint64 totalNeeded = Proposals.votesRemaining(_totalShares, 0, approvalRequirement);
     if (!index.exists) approved = shares >= totalNeeded;
     else approved = shares >= (totalNeeded - _proposals[index.index].votes);
   }

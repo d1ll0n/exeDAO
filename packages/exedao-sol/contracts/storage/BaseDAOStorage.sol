@@ -40,20 +40,26 @@ contract BaseDAOStorage {
     for (uint256 i = 0; i < size; i++) daoists[i] = _daoists[i];
   }
 
-  function getToken(address tokenAddress) external view returns (DaoLib.TokenOutput memory token) {
+  function getToken(address tokenAddress) external view returns (DaoLib.TokenValue memory tokenValue) {
     Indices.Index memory index = _tokenIndices[tokenAddress];
     require(index.exists, "ExeDAO: Token not found");
-    IERC20 _token = _tokens[index.index];
+    IERC20 _token = _getToken(tokenAddress);
     uint256 balance = _token.balanceOf(address(this));
-    token = DaoLib.TokenOutput(address(_token), balance);
+    tokenValue = DaoLib.TokenValue(address(_token), balance);
   }
 
-  function getTokens() external view returns (DaoLib.TokenOutput[] memory tokens) {
+  function getTokens() external view returns (DaoLib.TokenValue[] memory tokenBalances) {
     uint256 size = _tokens.length;
-    tokens = new DaoLib.TokenOutput[](size);
+    tokenBalances = new DaoLib.TokenValue[](size);
     for (uint256 i = 0; i < size; i++) {
       uint256 balance = _tokens[i].balanceOf(address(this));
-      tokens[i] = DaoLib.TokenOutput(address(_tokens[i]), balance);
+      tokenBalances[i] = DaoLib.TokenValue(address(_tokens[i]), balance);
     }
+  }
+
+  function _getToken(address tokenAddress) internal view returns (IERC20 token) {
+    Indices.Index memory index = _tokenIndices[tokenAddress];
+    require(index.exists, "ExeDAO: Token not found");
+    token = _tokens[index.index];
   }
 }

@@ -18,7 +18,6 @@ library Proposals {
 
   function votesRemaining (uint64 totalShares, uint64 votes, uint8 approvalRequirement)
   internal pure returns (uint64) {
-    if (approvalRequirement == 255) return 0;
     uint64 totalNeeded = totalShares * approvalRequirement / 100;
     if (votes >= totalNeeded) return 0;
     else return totalNeeded - votes;

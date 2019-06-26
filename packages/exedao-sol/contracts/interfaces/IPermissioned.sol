@@ -21,5 +21,8 @@ contract IPermissioned is IBaseDAO {
     uint256[] calldata nonces,
     bytes32[] calldata proposalHashes
   ) external returns (bytes memory);
-
+  function addToken(address tokenAddress) external;
+  function approveTokenTransfer(address tokenAddress, address spender, uint256 amount) external;
+  function transferToken(address tokenAddress, address recipient, uint256 amount) external;
+  function receiveToken(address tokenAddress, address sender, uint256 amount) external;
 }

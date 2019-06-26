@@ -31,7 +31,7 @@ contract BaseDAO is IBaseDAO, BaseDAOStorage {
   }
 
   function burnShares(uint64 amount) external
-  returns(uint256 weiValue, DaoLib.TokenOutput[] memory tokenBurnValues) {
+  returns(uint256 weiValue, DaoLib.TokenValue[] memory tokenBurnValues) {
     DaoLib.DaoistOutput memory _daoist = getDaoist(msg.sender);
     require(_daoist.shares >= amount, "Not enough shares");
     // use large multiplier to avoid rounding errors
@@ -39,7 +39,7 @@ contract BaseDAO is IBaseDAO, BaseDAOStorage {
     // subtract shares prior to sending anything to prevent reentrance
     _daoists[_daoist.index].shares = uint64(_daoist.shares.sub(amount));
     uint256 numTokens = _tokens.length;
-    tokenBurnValues = new DaoLib.TokenOutput[](numTokens);
+    tokenBurnValues = new DaoLib.TokenValue[](numTokens);
     uint256 shareValue;
     uint256 balance;
     for (uint256 i = 0; i < numTokens; i++) {
@@ -47,18 +47,11 @@ contract BaseDAO is IBaseDAO, BaseDAOStorage {
       balance = token.balanceOf(address(this));
       shareValue = relativeShare.mul(balance).div(_multiplier);
       require(token.transfer(msg.sender, shareValue), "ExeDAO: Transfer failed");
-      tokenBurnValues[i] = DaoLib.TokenOutput(address(token), shareValue);
+      tokenBurnValues[i] = DaoLib.TokenValue(address(token), shareValue);
     }
     weiValue = address(this).balance.mul(relativeShare).div(_multiplier);
     msg.sender.transfer(weiValue);
     emit SharesBurned(msg.sender, amount);
-  }
-
-  function _receiveToken(address tokenAddress, address sender, uint256 amount) public {
-    Indices.Index memory index = _tokenIndices[tokenAddress];
-    require(index.exists, "ExeDAO: Token not found");
-    require(IERC20(tokenAddress).transferFrom(sender, address(this), amount), "exeDAO: transferFrom failed.");
-    emit TokenReceived(tokenAddress, sender, amount);
   }
 
   function _mintShares(address recipient, uint64 amount) internal {
@@ -81,10 +74,20 @@ contract BaseDAO is IBaseDAO, BaseDAOStorage {
     emit TokenAdded(tokenAddress);
   }
 
+  function _approveTokenTransfer(address tokenAddress, address spender, uint256 amount) internal {
+    IERC20 token = _getToken(tokenAddress);
+    require(token.approve(spender, amount), "ExeDAO: Approve transfer failed");
+  }
+
+  function _receiveToken(address tokenAddress, address sender, uint256 amount) internal {
+    IERC20 token = _getToken(tokenAddress);
+    require(token.transferFrom(sender, address(this), amount), "exeDAO: transferFrom failed.");
+    emit TokenReceived(tokenAddress, sender, amount);
+  }
+
   function _transferToken(address tokenAddress, address recipient, uint256 amount) internal {
-    Indices.Index memory index = _tokenIndices[tokenAddress];
-    require(index.exists, "ExeDAO: Token not found");
-    require(_tokens[index.index].transfer(recipient, amount), "ExeDAO: Transfer failed");
+    IERC20 token = _getToken(tokenAddress);
+    require(token.transfer(recipient, amount), "ExeDAO: Transfer failed");
     emit TokenTransferred(tokenAddress, recipient, amount);
   }
 }

@@ -18,8 +18,8 @@ const compile = (entryFile, src, returnAll) => {
     },
     settings: {
       outputSelection: {
-        '*': {
-          '*': [ '*' ]
+        "*": {
+          "*": ["abi", "evm.bytecode", "evm.deployedBytecode"]
         }
       },
       optimizer: {
@@ -34,6 +34,8 @@ const compile = (entryFile, src, returnAll) => {
     throw toThrow;
   }
   const output = {};
+  console.log(Object.keys(out.contracts))
+  console.log(out.contracts['ExeDAO.sol']['ExeDAO'])
   for (let filePath of Object.keys(out.contracts)) {
     const fileName = stripFileName(filePath)
     const {
