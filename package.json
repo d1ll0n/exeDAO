@@ -23,7 +23,8 @@
     "packages/exedao-theme",
     "packages/exedao-ui",
     "packages/exedao-js",
-    "packages/exedao-app"
+    "packages/exedao-app",
+    "packages/exedao-server"
   ],
   "homepage": "https://github.com/d1ll0n/EXEdao-private#readme",
   "dependencies": {

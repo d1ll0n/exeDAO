@@ -18,3 +18,11 @@ package-lock.json
 /packages/*/dist
 /**/app-compressed.tar.gz⏎
 *.env
+
+packages/exedao-server/src/\.db/LOG
+
+packages/exedao-server/src/\.db/CURRENT
+
+packages/exedao-server/src/\.db/LOG\.old
+
+packages/exedao-server/src/\.db/MANIFEST-000099
