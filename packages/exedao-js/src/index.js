@@ -1,10 +1,10 @@
-const exeDAO = require('./exeDAO');
+const ExeDAO = require('./ExeDAO');
 const deploy = require('./deploy');
 const abi = require('../build/abi');
 const bytecode = require('../build/bytecode');
 
 module.exports = {
-  exeDAO,
+  ExeDAO,
   deploy,
   abi,
   bytecode

@@ -8,7 +8,9 @@ const API = require('./util/api');
 const {functionDescriptions} = require('./defaults');
 // const mhA = require('multihashing-async')
 
-module.exports = class exeDAO extends Contract {
+
+
+module.exports = class ExeDAO extends Contract {
   constructor(web3, userAddress, contract, apiUrl) {
     super(web3, userAddress, contract);
     this.hasher = new Hasher(web3);
@@ -19,7 +21,7 @@ module.exports = class exeDAO extends Contract {
 
   static async deploy(web3, address, options) {
     const contract = await deploy(web3, address, options);
-    return new exeDAO(web3, address, contract);
+    return new ExeDAO(web3, address, contract);
   }
 
   async init() {
@@ -140,6 +142,11 @@ module.exports = class exeDAO extends Contract {
     }
   }
 
+  verifyBuyRequestMeta(applicantAddress, name, description) {
+    const {metaHash} = this.getBuyRequest(applicantAddress);
+    return this.verifyJsonHash(metaHash, {name, description});
+  }
+
   async verifyBytecode(metadata) {
     const func = metadata.function;
     const args = metadata.arguments;
@@ -148,7 +155,7 @@ module.exports = class exeDAO extends Contract {
       const useDelegate = args[3];
       if (!useDelegate) return true;
       checkBytecode = args[2];
-    } else if (func == 'safeExecute' || func == 'unsafeExecute') {
+    } else if (func == 'safeExecute') {
       checkBytecode = args[0];
     }
     if (checkBytecode) {
@@ -166,30 +173,26 @@ module.exports = class exeDAO extends Contract {
   }
   /* </VERIFIERS> */
 
-  /* async updateFunctions() {
-    const extensions = await this.call('getExtensions');
-    for (let extension of extensions) {
-      const functions = extension.rawFunctions;
-      for (let func of functions) {
-        const {name, encodeCall} = getFunctionInfo(func);
-        if (!this.functionEncoders[name]) this.functionEncoders[name] = encodeCall;
-        if (!this[name]) this[name] = (gas, value, ...args) => this.sendProposal(name, gas, value, ...args)
-      }
-    }
-  } */
-
-
   /* <GETTERS> */
-  getShares(address) { return this.call('daoists', address); }
-  getTotalShares() { return this.call('totalShares'); }
-  getApprovalRequirement(funcsig) { return this.call('approvalRequirements', funcsig); }
+  getToken(address) { return this.call('getToken', address); }
+  getTokens() { return this.call('getTokens'); }
+
+  getShares(address) { return this.call('getDaoist', address).then(daoist => daoist.shares); }
+  getTotalShares() { return this.call('getTotalShares'); }
+  
+  getApprovalRequirement(funcsig) { return this.call('getApprovalRequirement', funcsig); }
   getApprovalRequirements(funcsigs) { return this.call('getApprovalRequirements', funcsigs); }
+  
   getProposal(proposalHash) { return this.call('getProposal', proposalHash); }
   getOpenProposals() { return this.call('getOpenProposals'); }
-  getProposalMetaHash(proposalHash) { return this.call('proposalMetaHashes', proposalHash); }
-  getBuyRequest(address) { return this.call('buyRequests', address); }
-  getExtension(index) { return this.call('extensions', index); }
+  getProposalMetaHash(proposalHash) { return this.call('getProposalMetaHash', proposalHash); }
+  
+  getBuyRequest(address) { return this.call('getBuyRequest', address); }
+  getOpenBuyRequests() { return this.call('getOpenBuyRequests'); }
+
+  getExtension(index) { return this.call('getExtension', index); }
   getExtensions() { return this.call('getExtensions'); }
+  
   async getMetaData(metaHash) {
     const metadata = await this.api.getFile(metaHash)
     const valid = await this.verifyJsonHash(metaHash, metadata)
@@ -199,8 +202,18 @@ module.exports = class exeDAO extends Contract {
   /* </GETTERS> */
 
   /* <PROPOSALS> */
+  acceptBuyRequest(applicant, gas) { return this.send('executeBuyRequest', gas, 0, applicant); }
+  cancelBuyRequest(gas) { return this.send('executeBuyRequest', gas, 0, this.address); }
   submitOrVote(proposalHash, gas) { return this.send('submitOrVote', gas, 0, proposalHash); }
-  requestShares(shares) { return this.send('requestShares', shares); }
+  async requestShares({shares, wei, tokens = [], name, description}, gas) {
+    for (let token of tokens) {
+      const {tokenAddress, value} = token;
+      const calldata = this.encodeERC20Call('approve', this.contract._address, value);
+      await this.sendRaw(calldata, null, 0, tokenAddress);
+    }
+    const metaHash = this.hasher.jsonSha3({name, description})
+    return this.send('requestShares', gas, wei, metaHash, shares, tokens);
+  }
   async sendProposal(method, gas, value, ...args) {
     if (!this.contract.methods[method]) throw new Error(`No method for ${method}`);
     const data = this.contract.methods[method](...args).encodeABI();
@@ -221,16 +234,24 @@ module.exports = class exeDAO extends Contract {
   mintShares(address, shares, gas) { return this.sendProposal('mintShares', gas, 0, address, shares); }
   setMinimumBuyRequestValue(minValue, gas) { return this.sendProposal('setMinimumRequestValue', gas, 0, minValue); }
   safeExecute(bytecode, gas) { return this.sendProposal('safeExecute', gas, 0, bytecode); }
-  unsafeExecute(bytecode, gas) { return this.sendProposal('unsafeExecute', gas, 0, bytecode); }
   addExtension(extension, gas) { return this.sendProposal('addExtension', gas, 0, extension); }
   removeExtension(address, gas) { return this.sendProposal('removeExtension', gas, 0, address); }
   setApprovalRequirement(sig, req, gas) { return this.sendProposal('setApprovalRequirement', gas, 0, sig, req); }
   submitWithMetaHash(proposalHash, metaHash, gas) {
     return this.send('submitWithMetaHash', gas, 0, proposalHash, metaHash); 
   }
+  addToken(tokenAddress, gas) { return this.sendProposal('addToken', gas, 0, tokenAddress); }
+  approveTokenTransfer(tokenAddress, spender, amount, gas) {
+    return this.sendProposal('approveTokenTransfer', gas, 0, tokenAddress, spender, amount);
+  }
+  transferToken(tokenAddress, recipient, amount, gas) {
+    return this.sendProposal('transferToken', gas, 0, tokenAddress, recipient, amount);
+  }
+  receiveToken(tokenAddress, sender, amount, gas) {
+    return this.sendProposal('receiveToken', gas, 0, tokenAddress, sender, amount);
+  }
   /* </PROPOSALS> */
 }
-
 /*
 setMinimumRequestValue(uint)
 safeExecute(bytes)

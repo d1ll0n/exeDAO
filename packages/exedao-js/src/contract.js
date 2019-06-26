@@ -1,4 +1,5 @@
 const {abi: baseAbi} = require('../build/abi');
+const {abi: erc20Abi} = require('../build/erc20');
 
 module.exports = class Contract {
   constructor(web3, address, contract) {
@@ -7,6 +8,7 @@ module.exports = class Contract {
     const isAddress = typeof contract == 'string' || Buffer.isBuffer(contract)
     this.contract = isAddress ? new this.web3.eth.Contract(baseAbi, contract) : contract;
     this.address = address;
+    this.erc20 = new this.web3.eth.Contract(erc20Abi)
   }
 
   get abi() { return this._abi; }
@@ -20,13 +22,18 @@ module.exports = class Contract {
 
   // BASIC CONTRACT INTERACTIONS
   call(method, ...args) { return this.contract.methods[method](...args).call(); }
-  sendRaw(data, gas, value) {
+
+  encodeERC20Call(method, ...args) {
+    return this.erc20.methods[method](...args).encodeABI();
+  }
+
+  sendRaw(data, gas, value, to) {
     return this.web3.eth.sendTransaction({
       from: this.address,
       data,
       gas: gas || undefined,
       value: value || undefined,
-      to: this.contract._address 
+      to: to || this.contract._address 
     })
   }
   
