@@ -26,3 +26,5 @@ packages/exedao-server/src/\.db/CURRENT
 packages/exedao-server/src/\.db/LOG\.old
 
 packages/exedao-server/src/\.db/MANIFEST-000099
+
+packages/exedao-server/src/\.db/
