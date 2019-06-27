@@ -23,7 +23,8 @@ const compile = (entryFile, src, returnAll) => {
         }
       },
       optimizer: {
-        enabled: true
+        enabled: true,
+        runs: 200
       }
     }
   }), findImports));

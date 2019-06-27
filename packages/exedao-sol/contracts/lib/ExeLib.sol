@@ -83,12 +83,4 @@ library ExeLib {
       revert(retptr, returndatasize)
     }
   }
-  
-  function bytecodeAt(address deployedAddress)
-  internal view returns (bytes memory bytecode) {
-    uint256 size;
-    assembly { size := extcodesize(deployedAddress) }
-    bytecode = new bytes(size);
-    assembly { extcodecopy(deployedAddress, add(bytecode, 0x20), 0, size) }
-  }
 }

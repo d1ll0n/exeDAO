@@ -2,7 +2,7 @@ pragma solidity ^0.5.5;
 pragma experimental ABIEncoderV2;
 
 import "./BaseDAO.sol";
-import "./lib/SignatureUnpack.sol";
+// import "./lib/SignatureUnpack.sol";
 import "./storage/PermissionedStorage.sol";
 import "./interfaces/IPermissioned.sol";
 
@@ -12,7 +12,7 @@ import "./interfaces/IPermissioned.sol";
  * @dev Approval requirements are set per function signature.
  */
 contract Permissioned is IPermissioned, BaseDAO, PermissionedStorage {
-  using SignatureUnpack for bytes;
+  // using SignatureUnpack for bytes;
 
   event ProposalSubmission(address indexed submitter, bytes32 indexed proposalHash, bytes32 metaHash, uint64 votesCast);
   event ProposalVote(address indexed voter, bytes32 indexed proposalHash, uint64 votesCast);
@@ -109,7 +109,7 @@ contract Permissioned is IPermissioned, BaseDAO, PermissionedStorage {
     }
   }
 
-  function supplyOfflineVotesWithCall(
+  /* function supplyOfflineVotesWithCall(
     bytes calldata wrappedCalldata,
     bytes[] calldata sigs,
     uint256[] calldata nonces,
@@ -128,7 +128,7 @@ contract Permissioned is IPermissioned, BaseDAO, PermissionedStorage {
     (, bytes memory retval) = address(this).delegatecall(wrappedCalldata);
     // if this call throws it doesn't matter, allow anyone to pay the gas to submit offline signatures even in the absence of valid calldata
     return retval;
-  }
+  } */
 
   /**
    * @dev Call _submitOrVote() and return true if the proposal is approved, false if not.

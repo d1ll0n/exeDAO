@@ -41,8 +41,6 @@ contract BaseDAOStorage {
   }
 
   function getToken(address tokenAddress) external view returns (DaoLib.TokenValue memory tokenValue) {
-    Indices.Index memory index = _tokenIndices[tokenAddress];
-    require(index.exists, "ExeDAO: Token not found");
     IERC20 _token = _getToken(tokenAddress);
     uint256 balance = _token.balanceOf(address(this));
     tokenValue = DaoLib.TokenValue(address(_token), balance);

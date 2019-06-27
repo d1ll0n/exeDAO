@@ -15,12 +15,12 @@ contract IPermissioned is IBaseDAO {
   function submitOrVote(bytes32 proposalHash) external returns(uint, uint);
   function submitWithMetaHash(bytes32 proposalHash, bytes32 metaHash) external returns(uint256 index);
   function closeProposal(bytes32 proposalHash) external;
-  function supplyOfflineVotesWithCall(
+  /* function supplyOfflineVotesWithCall(
     bytes calldata wrappedCalldata,
     bytes[] calldata sigs,
     uint256[] calldata nonces,
     bytes32[] calldata proposalHashes
-  ) external returns (bytes memory);
+  ) external returns (bytes memory); */
   function addToken(address tokenAddress) external;
   function approveTokenTransfer(address tokenAddress, address spender, uint256 amount) external;
   function transferToken(address tokenAddress, address recipient, uint256 amount) external;

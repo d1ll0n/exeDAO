@@ -17,7 +17,7 @@ contract PermissionedStorage {
   mapping(bytes32 => Indices.Index) internal _proposalIndices;
   mapping(bytes4 => uint8) internal _approvalRequirements;
   mapping(bytes32 => bytes32) internal _proposalMetaHashes;
-  mapping(address => mapping(uint256 => bool)) internal _offlineNonces;
+  // mapping(address => mapping(uint256 => bool)) internal _offlineNonces;
 
   function getApprovalRequirement(bytes4 funcSig) external view returns (uint8 requirement) {
     requirement = _approvalRequirements[funcSig];

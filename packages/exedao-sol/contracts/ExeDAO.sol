@@ -6,6 +6,9 @@ import "./storage/ExeDAOStorage.sol";
 import "./interfaces/IExeDAO.sol";
 
 contract ExeDAO is IExeDAO, Extendable, ExeDAOStorage {
+  event BuyRequestAdded(address applicant, uint64 shares);
+  event BuyRequestCancelled(address applicant);
+
   constructor(
     uint64 shares, uint64 _proposalDuration,
     bytes4[] memory funcSigs, uint8[] memory requirements
@@ -49,6 +52,7 @@ contract ExeDAO is IExeDAO, Extendable, ExeDAOStorage {
     index = Indices.Index(true, uint248(_buyRequests.length));
     _buyRequestIndices[msg.sender] = index;
     _buyRequests.push(buyRequest);
+    emit BuyRequestAdded(msg.sender, shares);
     /* for (uint256 i = 0; i < tokenTributes.length; i++) {
       _buyRequests[index.index].lockedTokens.push(tokenTributes[i]);
     } */
@@ -73,6 +77,7 @@ contract ExeDAO is IExeDAO, Extendable, ExeDAOStorage {
       }
       delete _buyRequests[index.index];
       delete _buyRequestIndices[applicant];
+      emit BuyRequestCancelled(applicant);
       msg.sender.transfer(request.lockedWei);
       for (uint256 i = 0; i < request.lockedTokens.length; i++) {
         _transferToken(request.lockedTokens[i], msg.sender, request.lockedTokenValues[i]);
