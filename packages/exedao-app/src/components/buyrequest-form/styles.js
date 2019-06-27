@@ -1,11 +1,20 @@
 const styles = (theme) => ({
     paper: {
-        width: 300,
-        height: 500,
+        margin: 10,
+        width: 325,
+        height: 700,
     },
     tokenList: {
-        maxHeight: 150,
+        height: 200,
+        width: 271,
+        maxHeight: 200,
         overflow: 'auto',
+    },
+    formControl: {
+        minWidth: 120,
+    },
+    select: {
+        width: 223,
     },
 });
 

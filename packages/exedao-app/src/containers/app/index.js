@@ -13,20 +13,11 @@ import Web3Modal from '../web3-modal';
 import Proposal from '../../components/proposal-form';
 import Proposals from '../proposals';
 
-import BuyRequestForm from '../../components/buyrequest-form';
-
-/*const tokens = [
-  {symbol: "DAI"},
-  {symbol: "DILDAO"},
-  {symbol: "BTC"},
-  {symbol: "SOY"}
-];*/
-
 class App extends Component {
   componentDidMount = () => {
     // this.props.requestWeb3();
     // this.props.goHome();
-    //this.props.initWeb3();
+    this.props.initWeb3();
     // this.props.goProp()
   };
 
@@ -48,14 +39,11 @@ class App extends Component {
     </main>
   );
 
-  /*
-    <BuyRequestForm tokens = { tokens } />
-  */
   render() {
     return (
       <div>
         {this.renderHeader()}
-        {this.renderMain()}       
+        {this.renderMain()}     
       </div>
     );
   }
