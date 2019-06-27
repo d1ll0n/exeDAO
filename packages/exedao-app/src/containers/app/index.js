@@ -13,7 +13,6 @@ import Web3Modal from '../web3-modal';
 import Proposal from '../../components/proposal-form';
 import Proposals from '../proposals';
 
-
 class App extends Component {
   componentDidMount = () => {
     // this.props.requestWeb3();
@@ -44,7 +43,7 @@ class App extends Component {
     return (
       <div>
         {this.renderHeader()}
-        {this.renderMain()}
+        {this.renderMain()}     
       </div>
     );
   }
