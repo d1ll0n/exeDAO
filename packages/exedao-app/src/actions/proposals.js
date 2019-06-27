@@ -16,7 +16,7 @@ export const submitVote = (method, ...args) => {
   }
 }
 
-export const submitProposal = async (exedao, proposalData) => { // proposalData = {function, arguments, title, description}
+export const submitProposal = async (exedao, proposalData, membersOnly) => { // proposalData = {function, arguments, title, description}
   console.log(`submitting proposal`)
   const proposalHash = exedao.hashProposal(proposalData.function, ...proposalData.arguments)
   console.log(`proposal hash -- ${proposalHash}`)
@@ -25,7 +25,7 @@ export const submitProposal = async (exedao, proposalData) => { // proposalData 
     const metaHash = exedao.hasher.jsonSha3(proposalData)
     console.log(`proposal meta hash -- ${metaHash}`)
     await exedao.submitWithMetaHash(proposalHash, metaHash, 250000)
-    await exedao.api.putProposal({proposalHash, data: proposalData})
+    await exedao.api.putProposal({proposalHash, data: proposalData, membersOnly})
   }
   else return exedao.submitOrVote(proposalHash, 250000)
 }

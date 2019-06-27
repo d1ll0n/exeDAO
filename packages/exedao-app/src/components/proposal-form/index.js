@@ -62,7 +62,8 @@ class ProposalForm extends Component {
     activeFunction: '',
     title: '',
     description: '',
-    includeMeta: true
+    includeMeta: true,
+    membersOnly: false
   }
 
   /* componentWillReceiveProps = ({abi}) => {
@@ -75,7 +76,7 @@ class ProposalForm extends Component {
   setActiveFunction = ({target: {value: sig}}) => this.setState({ activeFunction: sig });
 
   handleSubmit = async (values) => {
-    const {activeFunction, title, description, includeMeta} = this.state;
+    const {activeFunction, title, description, includeMeta, membersOnly} = this.state;
     const {functions, exedao} = this.props;
     const {abi: {inputs}, signature} = functions[activeFunction]
     const proposalData = {
@@ -86,7 +87,7 @@ class ProposalForm extends Component {
     }
     console.log(`submitting proposal`)
     console.log(proposalData)
-    await submitProposal(exedao, proposalData)
+    await submitProposal(exedao, proposalData, membersOnly)
     this.props.goProp()
   }
 
@@ -130,15 +131,19 @@ class ProposalForm extends Component {
   }
 
   toggleIncludeMeta = () => this.setState({ includeMeta: !this.state.includeMeta })
+  toggleMembersOnly = () => this.setState({ membersOnly: !this.state.membersOnly })
   handleChangeTitle = ({target: {value}}) => this.setState({ title: value })
   handleChangeDescription = ({target: {value}}) => this.setState({ description: value })
 
   renderMetaForm = () => {
-    const {title, description, includeMeta, activeFunction} = this.state;
+    const {title, description, includeMeta, activeFunction, membersOnly} = this.state;
     if (activeFunction == '') return ''
     return (<Fragment>
-      <FormControlLabel label='Include Metadata' control={
+      <FormControlLabel label='Include metadata' control={
         <Switch checked={includeMeta} onChange={this.toggleIncludeMeta} />
+      }/>
+      <FormControlLabel label='Only visible to members' control={
+        <Switch checked={membersOnly} onChange={this.toggleMembersOnly} />
       }/>
       {
         includeMeta &&

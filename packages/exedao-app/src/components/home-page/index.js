@@ -7,39 +7,40 @@ import {
     Grid,
     Card,
     CardMedia,
-    CardContent
   } from '@material-ui/core';
 
 const totalValue = (ether, tokens) => ether.price * ether.count + tokens.reduce((value, token) => value += token.price * token.count, 0);
 
 const renderHeader = (ether, shares, tokens, classes) => {
     return (
-        <Grid 
-            container
-            direction = "column"
-            className = { classes.header }
-        >
-            <Grid item>
-                <Typography variant = "h6">
-                    Ether Balance: { ether.count }
-                </Typography>
+        <Card>
+            <Grid 
+                container
+                direction = "column"
+                className = { classes.header }
+            >
+                <Grid item>
+                    <Typography variant = "h6">
+                        Ether Balance: { ether.count }
+                    </Typography>
+                </Grid>
+                <Grid item>
+                    <Typography variant = "h6">
+                        Shares: { shares }
+                    </Typography>
+                </Grid>
+                <Grid item>
+                    <Typography variant = "h6">
+                        Total Value: ${ totalValue(ether, tokens) }
+                    </Typography>
+                </Grid>
+                <Grid item>
+                    <Typography variant = "h6">
+                        Share Value: ${ totalValue(ether, tokens) / shares}
+                    </Typography>
+                </Grid>
             </Grid>
-            <Grid item>
-                <Typography variant = "h6">
-                    Shareholders: { shares }
-                </Typography>
-            </Grid>
-            <Grid item>
-                <Typography variant = "h6">
-                    Total Value: ${ totalValue(ether, tokens) }
-                </Typography>
-            </Grid>
-            <Grid item>
-                <Typography variant = "h6">
-                    Share Value: ${ totalValue(ether, tokens) / shares}
-                </Typography>
-            </Grid>
-        </Grid>
+        </Card>
     );
 };
 
@@ -52,22 +53,28 @@ const renderTokens = (tokens, classes) => {
             className = { classes.token }
         >
             {
-                tokens.map((token, i) => 
-                    <Grid  item key = { i } className = { classes.tokenItem }>
+                tokens.map((token, i) =>
+                    <Grid item key = { i } className = { classes.tokenItem }>
                         <Card key = { i } className = { classes.tokenCard }>
-                            <CardMedia
-                                component = "img"
-                                image = { token.logo }
-                            />
-                            <CardContent>
-                                <Typography variant = "h7">
-                                    { token.name }
-                                    <br/>
-                                    { ` Balance: ${ token.count } ${token.name}`}
-                                    <br/>
-                                    { ` USD Value: $${token.price}`}
+                            <Grid container direction = 'row' align = 'center'>
+                                <Grid item md={3}>
+                                    <CardMedia
+                                        component = "img"
+                                        image = { token.logo }
+                                        className={ classes.tokenLogo }
+                                    />
+                                </Grid>
+                                <Grid item md={9}>
+                                    <Typography variant = "h6">
+                                        { token.name }
+                                    </Typography>
+                                </Grid>
+                            </Grid>
+                            <Grid container justify='center' className={classes.tokenPrice}>
+                                <Typography variant='h7'>
+                                    {token.count} {token.name} (${token.price})
                                 </Typography>
-                            </CardContent>
+                            </Grid>
                         </Card>
                     </Grid>
                 )

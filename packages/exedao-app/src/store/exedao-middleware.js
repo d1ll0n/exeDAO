@@ -6,7 +6,8 @@ import {
   EXEDAO_SET_PROPOSAL_DETAILS,
   EXEDAO_ADD_TOKENS,
   EXEDAO_ADD_VOTES,
-  EXEDAO_SET
+  EXEDAO_SET,
+  EXEDAO_ADD_BUY_REQUEST
 } from './reducers/exedao';
 import { dispatch } from 'rxjs/internal/observable/pairs';
 
@@ -34,24 +35,22 @@ export default function createExedaoMiddleware() {
       async ({proposalHash}) =>
         dispatch({type: EXEDAO_ADD_PROPOSAL, proposal: await exedao.getProposal(proposalHash)}))
 
-    exedao.addVoteListener(
+    exedao.addListener(
       'ProposalVote',
       ({proposalHash, votesCast}) =>
         dispatch({type: EXEDAO_ADD_VOTES, proposal: {proposalHash, votesCast}}))
+    
+    exedao.addListener(
+      'BuyRequestAdded',
+      ({applicant}) => {
+        const buyRequest = exedao.getBuyRequest(applicant);
+        dispatch({type: EXEDAO_ADD_BUY_REQUEST, buyRequest})
+      }
+    )
   }
 
   async function apiLogin(exedao) {
     if (exedao.ownedShares && !exedao.api.token) await exedao.api.login()
-  }
-
-  async function addTokens(exedao) {
-    const tokens = await exedao.getTokens();
-    dispatch({
-      type: EXEDAO_ADD_TOKENS,
-      tokens: tokens.map(
-        ({tokenAddress, value}) =>
-          ({tokenAddress, balance: value}))
-    })
   }
 
   return ({ dispatch }) => {
@@ -61,7 +60,6 @@ export default function createExedaoMiddleware() {
         const exedao = new ExeDAO(web3, accounts[0], exeDAOAddress);
         setExedao(exedao, dispatch)
           .then(() => loggedIn && apiLogin(exedao))
-          .then(() => addTokens(exedao));
       }
       return next(action);
     };

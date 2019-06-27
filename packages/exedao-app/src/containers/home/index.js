@@ -1,102 +1,35 @@
 import React, { Component } from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import styles from './styles';
-import { Link } from 'react-router-dom';
 import { push } from 'connected-react-router';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { requestWeb3 } from '../../actions/web3';
 import { clearStore } from '../../actions/wallet';
-import { Button, CircularProgress, Grid, Typography } from '@material-ui/core';
-import { unstable_Box as Box } from '@material-ui/core/Box';
+import HomePage from '../../components/home-page';
 
 class Home extends Component {
-  componentDidMount = () => {
-    this.props.clearStore();
-  };
 
   render() {
-    const {
-      account,
-      loading,
-      wallet,
-      owners,
-      classes,
-      web3,
-      usingInfura,
-    } = this.props;
+    const {loading, balance, totalShares} = this.props;
+    console.log({loading, balance, totalShares})
+    if (loading || !totalShares || !balance) return <h1>Loading...</h1>
     return (
-      <Grid container alignItems="center" justify="center">
-        <Box
-          className={classes.box}
-          color="white"
-          bgcolor="#C0C0C0"
-          border={1}
-          fontFamily="Monospace"
-          borderRadius={16}
-        >
-          <Grid container alignItems="center" justify="center">
-            <Grid item>
-              <Typography variant="h2" className={classes.title}>
-                EXEdao
-              </Typography>
-            </Grid>
-          </Grid>
-          <Grid
-            container
-            alignItems="center"
-            justify="center"
-            direction="row"
-            className={classes.content}
-          >
-            <Grid item>
-              <Link to="/wallet/create" className={classes.link}>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  className={classes.button}
-                >
-                  Create a new EXEdao
-                </Button>
-              </Link>
-            </Grid>
-            <Grid item>
-              <Typography variant="h4" className={classes.subheader}>
-                OR
-              </Typography>
-            </Grid>
-            <Grid item>
-              <Link to="/wallet/load">
-                <Button
-                  variant="contained"
-                  color="primary"
-                  className={classes.button}
-                >
-                  Load an existing EXEdao
-                </Button>
-              </Link>
-            </Grid>
-          </Grid>
-        </Box>
-      </Grid>
+      <HomePage ether={{ price: 1, count: balance }} tokens={[{ name: 'DAI', price: 2, count: 100000, logo: 'https://global-uploads.webflow.com/5cb0ac9c57054973ac1bf1e4/5cd058497473d12cf9a5025b_1518.png' }]} shares={totalShares} />
     );
   }
 }
 
-const mapStateToProps = ({ web3, wallet }) => ({
+const mapStateToProps = ({ web3, exedao }) => ({
   account: web3.accounts[0],
-  wallet: wallet.wallet,
-  loading: web3.loading,
-  loaded: web3.loaded,
-  owners: wallet.owners,
-  web3: web3.web3,
-  usingInfura: web3.usingInfura,
+  exedao: exedao.exedao,
+  loading: web3.pending,
+  balance: exedao.exedao && exedao.exedao.balance,
+  totalShares: exedao.exedao && exedao.exedao.totalShares
 });
 
 const mapDispatchToProps = (dispatch) =>
   bindActionCreators(
     {
-      requestWeb3,
       goHome: () => push('/'),
       goVote: () => push('/wallet/vote'),
       clearStore,
