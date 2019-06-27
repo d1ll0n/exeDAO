@@ -27,7 +27,10 @@ module.exports = class ExeDAO extends Contract {
   async init() {
     await this.updateRequirements();
     this.totalShares = await this.getTotalShares();
-    this.ownedShares = this.address ? await this.getShares(this.address) : 0
+    this.ownedShares = this.address ? await this.getShares(this.address) : 0;
+    this.tokens = await this.getTokens();
+    this.balance = await this.web3.eth.getBalance(this.contract._address);
+    this.buyRequests = await this.getOpenBuyRequests();
   }
 
   get compiler() {
@@ -36,41 +39,13 @@ module.exports = class ExeDAO extends Contract {
   }
 
   /* <LISTENERS> */
-  async addExtensionListener(cb) {
+  async addListener(eventName, cb) {
     const blockNumber = await this.web3.eth.getBlockNumber()
-    this.contract.events.ExtensionAdded({fromBlock: blockNumber})
-      .on('data', ({returnValues: {extensionIndex, metaHash}}) => {
-        console.log(`Got extension added event -- index ${extensionIndex} | meta hash ${metaHash}`);
-        // this.updateExtension(metaHash)
-        cb({extensionIndex, metaHash})
+    this.contract.events[eventName]({fromBlock: blockNumber})
+      .on('data', ({returnValues: data}) => {
+        console.log(`Got ${eventName} event ${data}`);
+        cb(data)
     })
-  }
-
-  async addProposalListener(cb) {
-    const blockNumber = await this.web3.eth.getBlockNumber()
-    this.contract.events.ProposalSubmission({fromBlock: blockNumber})
-      .on('data', ({returnValues: {proposalHash, metaHash, votesCast}}) => {
-        console.log(`Got proposal submission event -- proposal hash ${proposalHash} | meta hash ${metaHash} | votes cast ${votesCast}`);
-        cb({proposalHash, metaHash, votesCast})
-      })
-  }
-
-  async addVoteListener(cb) {
-    const blockNumber = await this.web3.eth.getBlockNumber()
-    this.contract.events.ProposalVote({fromBlock: blockNumber})
-      .on('data', ({returnValues: {proposalHash, votesCast}}) => {
-        console.log(`Got proposal submission event -- proposal hash ${proposalHash} | votes cast ${votesCast}`);
-        cb({proposalHash, votesCast})
-      })
-  }
-
-  async addExpirationListener(cb) {
-    const blockNumber = await this.web3.eth.getBlockNumber()
-    this.contract.events.ProposalExpiration({fromBlock: blockNumber})
-      .on('data', ({returnValues: {proposalHash}}) => {
-        console.log(`Got proposal expiration event -- proposal hash ${proposalHash}`);
-        cb({proposalHash})
-      })
   }
   /* </LISTENERS> */
 
