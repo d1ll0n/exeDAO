@@ -1,6 +1,6 @@
 require('dotenv').config();
 const Web3 = require('web3');
-const {exeDAO} = require('exedao-js');
+const {ExeDAO} = require('exedao-js');
 const Temporal = require('./lib/temporal');
 // const rpcCall = require('kool-makerpccall');
 
@@ -31,8 +31,8 @@ module.exports = async () => {
   await temporal.login(temporaluser, temporalpass);
   let accounts = await web3.eth.getAccounts();
   let exedao
-  if (!contractAddress) exedao = await exeDAO.deploy(web3, accounts[0]);
-  else exedao = new exeDAO(web3, accounts[0], contractAddress);
+  if (!contractAddress) exedao = await ExeDAO.deploy(web3, accounts[0]);
+  else exedao = new ExeDAO(web3, accounts[0], contractAddress);
   
   console.log('exedao address -- ', exedao.contract._address);
   // Remove this next bit, just for testing
