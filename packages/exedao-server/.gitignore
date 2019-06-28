@@ -10,6 +10,7 @@
 
 # storage
 /src/data
+/src/.db
 
 # production
 /build
