@@ -42,9 +42,11 @@ module.exports = class HttpServer {
   }
 
   async saveFile(filePath, file, membersOnly) {
+    membersOnly = membersOnly == 'true';
     if (fs.existsSync(filePath)) throw new Error('File already uploaded.')
     fs.writeFileSync(filePath, Buffer.from(file));
     if (!membersOnly) {
+      console.log('Uploading to Temporal')
       const rs = fs.createReadStream(filePath);
       const ret = await this.temporal.uploadPublicFile(rs, 1);
       console.log('temporal response -- ', ret)
@@ -58,7 +60,7 @@ module.exports = class HttpServer {
     console.log(`got request /dao/file/${hash}`)
     const filePath = toPath(hash);
     if (!fs.existsSync(filePath)) return res.status(404).json(fileNotFound);
-    const file = fs.readFileSync(filePath);
+    const file = JSON.parse(fs.readFileSync(filePath, 'utf8'));
     return res.json({ data: file })
   }
 
@@ -70,7 +72,6 @@ module.exports = class HttpServer {
       const metahash = this.exedao.hasher.jsonSha3(data)
       const fileHash = await toCid(metahash);
       const filePath = toPath(fileHash);
-      console.log('saved -- ', fileHash)
       if (extension && data.function == 'addExtension') {
         const extFile = JSON.stringify(extension);
         const extHash = await mh(extFile, 'sha3-256');

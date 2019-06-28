@@ -26,13 +26,13 @@ const getProposalHeader = (title, description) => {
     );
 };
 
-const getVotesBar = (classes, votesNeeded, currentVotes) => {
+const getVotesBar = (classes, votesNeeded, votes) => {
     return (
         <Grid container direction="column" justify="center" alignItems="center">
             <Grid item style={{ width: 219, marginTop: 50 }}>
             <LinearProgress
                 variant="determinate"
-                value={currentVotes - votesNeeded / 100}
+                value={votes - votesNeeded / 100}
                 classes={{
                     root: classes.rootVotesBar,
                     bar: classes.votesBar,
@@ -48,7 +48,7 @@ const getVotesBar = (classes, votesNeeded, currentVotes) => {
                 <Grid item>
                     <Typography
                     className={classes.votesLabel}
-                    >{`${currentVotes} Current votes`}</Typography>
+                    >{`${votes} Current votes`}</Typography>
                 </Grid>
                 <Grid item>
                     <Typography
@@ -100,7 +100,7 @@ const ProposalDetailContainer = ({
     title,
     description,
     votesNeeded,
-    currentVotes,
+    votes,
     functionName,
     functionArgs
 }) => {
@@ -116,7 +116,7 @@ const ProposalDetailContainer = ({
                     </Grid>
                 </Grid>
                 <Grid container>
-                    { getVotesBar(classes, votesNeeded, currentVotes) }
+                    { getVotesBar(classes, votesNeeded, votes) }
                 </Grid>
             </Grid>
 

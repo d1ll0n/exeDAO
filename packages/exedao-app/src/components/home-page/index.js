@@ -71,7 +71,7 @@ const renderTokens = (tokens, classes) => {
                                 </Grid>
                             </Grid>
                             <Grid container justify='center' className={classes.tokenPrice}>
-                                <Typography variant='h7'>
+                                <Typography variant='h6'>
                                     {token.count} {token.name} (${token.price})
                                 </Typography>
                             </Grid>

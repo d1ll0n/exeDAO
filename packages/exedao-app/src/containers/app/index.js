@@ -15,9 +15,9 @@ import Proposals from '../proposals';
 
 class App extends Component {
   componentDidMount = () => {
-    // this.props.requestWeb3();
-    // this.props.goHome();
-    this.props.initWeb3();
+    this.props.requestWeb3();
+    this.props.goHome();
+    // this.props.initWeb3();
     // this.props.goProp()
   };
 

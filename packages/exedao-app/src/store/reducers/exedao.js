@@ -35,6 +35,7 @@ export default (state = initialState, action) => {
             return { ...state, exedao, loading: false }
 
         case EXEDAO_ADD_PROPOSAL:
+            if (state.proposals.some(prop => prop.proposalHash == proposal.proposalHash)) return state
             return {
                 ...state,
                 proposals: [...state.proposals, proposal]

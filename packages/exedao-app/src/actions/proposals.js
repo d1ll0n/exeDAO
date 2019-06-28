@@ -1,3 +1,4 @@
+import {util} from 'exedao-js';
 import { EXEDAO_ADD_PROPOSALS, EXEDAO_SET_PROPOSAL_DETAILS } from '../store/reducers/exedao';
 
 export const getOpenProposals = () => {
@@ -33,9 +34,13 @@ export const submitProposal = async (exedao, proposalData, membersOnly) => { // 
 export const getProposalMetaData = (proposalHash, metaHash) => {
   return async (dispatch, getState) => {
     if (!proposalHash || !metaHash) return
-    const {exedao} = getState().exedao;
+    const {exedao, proposals} = getState().exedao;
+    const proposal = proposals.filter(proposal => proposal.proposalHash == proposalHash)[0];
     console.log(`getting details for ${proposalHash} meta hash ${metaHash}`)
     const metadata = await exedao.getMetaData(metaHash)
-    dispatch({type: EXEDAO_SET_PROPOSAL_DETAILS, proposal: {proposalHash, ...metadata}})
+    const approvalRequirement = exedao.approvalRequirements[metadata.function]
+    const totalShares = exedao.totalShares;
+    const votesNeeded = util.votesNeeded(approvalRequirement, totalShares, proposal.votes)
+    dispatch({type: EXEDAO_SET_PROPOSAL_DETAILS, proposal: {proposalHash, votesNeeded, ...metadata}})
   }
 }

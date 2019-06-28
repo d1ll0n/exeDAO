@@ -27,8 +27,8 @@ export default function createExedaoMiddleware() {
 
   async function setExedao(exedao, dispatch) {
     console.log('Adding proposal listener')
-    await exedao.init()
-    dispatch({type: EXEDAO_SET, exedao})
+    await exedao.init();
+    dispatch({type: EXEDAO_SET, exedao});
     
     exedao.addListener(
       'ProposalSubmission',
@@ -61,6 +61,7 @@ export default function createExedaoMiddleware() {
         setExedao(exedao, dispatch)
           .then(() => loggedIn && apiLogin(exedao))
       }
+      
       return next(action);
     };
   };
