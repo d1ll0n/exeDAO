@@ -1,4 +1,6 @@
-const rp = require('request-promise');
+const rp = require('request-promise').defaults({
+  timeout: 5000
+});
 const multihashes = require('multihashes');
 const CID = require('cids');
 const isBrowser = require('is-browser');
@@ -114,16 +116,19 @@ module.exports = class API {
     const hash = toCid(fileHash);
     console.log(hash)
     const url = `${gatewayUrl}${hash}`;
-    const {data: file} = await rp.get(url)
+    let prom;
+    let timer = setTimeout(() => {
+      prom = this.getPrivate(fileHash);
+    }, 2500);
+
+    prom = rp.get(url)
       .then(file => {
-        console.log(typeof file)
-        console.log(file)
+        timer = null;
         return { data: JSON.parse(file) }
       })
-      .catch((e) => {
-        console.error(e);
-        return this.getPrivate(fileHash);
-      });
+    
+    const {data: file} = await prom;
+    console.log(file)
     return file;
   }
 
