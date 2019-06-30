@@ -15,8 +15,8 @@ const styles = (theme) => ({
     color: theme.palette.palette.primaryBlue,
   },
   labelContainer: {
-    paddingRight: 0,
-    paddingLeft: 0,
+    marginRight: 10,
+    marginLeft: 10,
   },
 });
 

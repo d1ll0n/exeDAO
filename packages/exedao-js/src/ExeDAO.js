@@ -24,6 +24,14 @@ module.exports = class ExeDAO extends Contract {
     return new ExeDAO(web3, address, contract);
   }
 
+  getFuncCallDetails(funcSig, args) {
+    const {inputs, name: functionName} = this.abi.filter(({signature}) => signature == funcSig)[0];
+    const parsedArgs = [];
+    for (let i in args) parsedArgs[i] = {value: args[i], name: inputs[i].name, type: inputs[i].type};
+    const functionSelector = `${functionName}(${inputs.map(i => i.type).join(',')})`
+    return {functionName, functionSelector, parsedArgs};
+  }
+
   async init() {
     await this.updateRequirements();
     this.totalShares = await this.getTotalShares();
@@ -31,6 +39,7 @@ module.exports = class ExeDAO extends Contract {
     this.tokens = await this.getTokens();
     this.balance = await this.web3.eth.getBalance(this.contract._address);
     this.buyRequests = await this.getOpenBuyRequests();
+    this.daoists = await this.getDaoists();
   }
 
   get compiler() {
@@ -149,6 +158,9 @@ module.exports = class ExeDAO extends Contract {
   /* </VERIFIERS> */
 
   /* <GETTERS> */
+  getDaoist(address) { return this.call('getDaoist', address); }
+  getDaoists() { return this.call('getDaoists'); }
+
   getToken(address) { return this.call('getToken', address); }
   getTokens() { return this.call('getTokens'); }
 

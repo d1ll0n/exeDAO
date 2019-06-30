@@ -11,14 +11,12 @@ import Home from '../home';
 import Navbar from '../navbar';
 import Web3Modal from '../web3-modal';
 import Proposal from '../../components/proposal-form';
-import Proposals from '../proposals';
+import Proposals from '../proposals-page';
+import BuyRequestForm from '../../components/buyrequest-form'
 
 class App extends Component {
   componentDidMount = () => {
-    this.props.requestWeb3();
-    this.props.goHome();
-    // this.props.initWeb3();
-    // this.props.goProp()
+    this.props.initWeb3();
   };
 
   renderHeader = () => <Navbar />;
@@ -36,12 +34,14 @@ class App extends Component {
       <Route exact path="/" component={Home} />
       <Route exact path="/submit-proposal" component={Proposal} /> 
       <Route exact path='/proposals' component={Proposals} />
+      <Route exact path='/application-form' component={BuyRequestForm} />
     </main>
   );
 
   render() {
     return (
       <div>
+        {/* <LoginSnack /> */}
         {this.renderHeader()}
         {this.renderMain()}     
       </div>

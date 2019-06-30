@@ -83,7 +83,7 @@ class AbiInput extends Component {
                 onChange = { this.handleArrayChange }
                 name = { i }
                 type =  { type }
-                value = { value[i]} 
+                value = { value[i] || '' } 
               />
               <IconButton onClick = { this.removeInput(i) }>
                 <DeleteIcon/>
@@ -110,7 +110,7 @@ class AbiInput extends Component {
                 onChange = { this.handleArrayChange }
                 name = { i }
                 type = { type }
-                value = { value[i] } 
+                value = { value[i] || '' } 
               />      
             </ListItem>
           )
@@ -167,7 +167,7 @@ class AbiInput extends Component {
         />
     }/>;
     return <TextField
-      label={`${name} (${type})`} value={value}
+      label={`${name} (${type})`} value={value || ''}
       margin="normal" onChange={this.handleChange}
       InputLabelProps={{ shrink: true }}
     />;

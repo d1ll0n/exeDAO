@@ -25,6 +25,17 @@ const styles = theme => ({
   },
   content: {
     marginBottom: 200
+  },
+  overview: {
+    width: 600,
+    height: 300,
+    padding: 25
+  },
+  base: {
+    padding: 50
+  },
+  overviewContent: {
+    width: '100%'
   }
 })
 

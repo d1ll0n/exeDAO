@@ -10,8 +10,8 @@
 
 # storage
 /src/data
-/src/.db
-
+/.db
+/src/.env
 # production
 /build
 

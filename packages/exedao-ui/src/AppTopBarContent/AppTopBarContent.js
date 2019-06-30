@@ -4,9 +4,9 @@ import { Toolbar, Typography } from '@material-ui/core';
 import TabsNav from '../TabsNav';
 import ExedaoLogo from './exedao-logo.png'
 
-const AppBar = ({ classes, tabNames, activeTabIndex, handleChange }) => (
+const AppBar = ({ classes, tabNames, activeTabIndex, handleChange, LinkComponent }) => (
   <Toolbar disableGutters className={classes.toolbar}>
-    <div className={classes.logoWrapper}>
+    <div className={classes.logoWrapper} onClick={() => handleChange(null, 0)}>
       <img src={ExedaoLogo} className={classes.logo} />
     </div>
     <div className={classes.tabsWrapper}>

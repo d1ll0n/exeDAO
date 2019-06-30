@@ -15,9 +15,8 @@ import { getOpenProposals, getProposalMetaData } from '../../actions/proposals'
 class Proposals extends Component {
   state = {retrievedOpen: false}
 
-  handleGetDetails = (proposalHash, metaHash) => {
-    this.props.getProposalMetaData(proposalHash, metaHash)
-  }
+  handleGetDetails = (proposalHash, metaHash) =>
+    this.props.getProposalMetaData(proposalHash, metaHash);
 
   renderProposals = () => {
     const {proposals} = this.props;

@@ -1,6 +1,6 @@
 const styles = (theme) => ({
   card: {
-    height: 420,
+    height: 325,
     width: 325,
     boxShadow: ' 0px 1px 3px 0px #D4D4D5, 0px 0px 0px 1px #D4D4D5',
     border: 'solid 1px rgba(0, 0, 0, 0.12)',
