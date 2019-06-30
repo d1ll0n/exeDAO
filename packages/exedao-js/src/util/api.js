@@ -112,9 +112,7 @@ module.exports = class API {
   }
 
   async getFile(fileHash) {
-    console.log(fileHash)
     const hash = toCid(fileHash);
-    console.log(hash)
     const url = `${gatewayUrl}${hash}`;
     let prom;
     let timer = setTimeout(() => {
@@ -137,6 +135,14 @@ module.exports = class API {
     const url = `${this.apiUrl}dao/putProposal`;
     const options = { method: 'POST', uri: url, form: data, json: true };
     const {data: {hash}} = await this.rp(options);
+    return hash;
+  }
+
+  async putApplication(application) {
+    const url = `${this.apiUrl}putApplication`;
+    console.log(`Sending application: ${this.address} ${application}`);
+    const options = { method: 'POST', uri: url, form: {applicant: this.address, application}, json: true};
+    const {data: {hash}} = await rp(options);
     return hash;
   }
 }

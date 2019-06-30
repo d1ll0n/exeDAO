@@ -17,12 +17,12 @@ library DaoLib {
     uint256 value;
   }
 
-  struct BuyRequest {
-    address applicant;
+  struct Application {
     bytes32 metaHash;
-    uint256 lockedWei;
-    address[] lockedTokens;
-    uint256[] lockedTokenValues;
+    uint256 weiTribute;
+    address applicant;
+    address[] tokenTributes;
+    uint256[] tokenTributeValues;
     uint64 shares;
   }
 }

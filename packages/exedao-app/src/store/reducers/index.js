@@ -1,10 +1,12 @@
 import { combineReducers } from 'redux'
-import wallet from './wallet'
 import web3 from './web3'
 import exedao from './exedao'
+import applications from './applications'
+import proposals from './proposals'
 
 export default combineReducers({
-  wallet,
+  applications,
+  proposals,
   web3,
   exedao
 })

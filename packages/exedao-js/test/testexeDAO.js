@@ -27,7 +27,7 @@ describe('exeDAO class', () => {
   
   it('Should vote on a proposal by its hash', async () => {
     const hash = exedao.hashProposal('mintShares', accounts[1], 500)
-    await exedao.voteByHash(hash, 200000);
+    await exedao.submitOrVote(hash, 200000);
     const {votes} = await exedao.getProposal(hash);
     expect(votes).to.eq('1000');
   })

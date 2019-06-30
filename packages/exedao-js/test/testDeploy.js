@@ -14,18 +14,18 @@ describe('exedao.js deploy', () => {
   it('Should have deployed a contract', () => expect(contract._address).exist);
 
   it('Should have minted 1000 shares', async () => {
-    const shares = await contract.methods.daoists(address).call();
-    expect(shares).to.eq('1000');
-    const total = await contract.methods.totalShares().call();
+    const daoist = await contract.methods.getDaoist(address).call();
+    expect(daoist.shares).to.eq('1000');
+    const total = await contract.methods.getTotalShares().call();
     expect(total).to.eq('1000');
   })
 
-  it('Should have initialized proposal requirements', async () => {
+  it('Should have initialized approval requirements', async () => {
     const {signatures, requirements} = require('../src/defaults');
     for (let i in signatures) {
       const sig = signatures[i];
       const req = requirements[i];
-      expect(await contract.methods.approvalRequirements(sig).call()).to.eq(req)
+      expect(await contract.methods.getApprovalRequirement(sig).call()).to.eq(req)
     }
   })
 })

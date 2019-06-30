@@ -1,23 +1,19 @@
 const { AbiCoder } = require('web3-eth-abi');
 const coder = new AbiCoder();
-/*
-0 = not allowed
-1 = basic majority (more yes than no votes)
-2 = absolute majority (>1/2)
-3 = super majority (>2/3)
-4 = ultra majority (>9/10)
-*/
 
 const defaultFunctions = [
-  ['setMinimumRequestValue(uint256)', '66', 'Set the minimum wei that must be sent with any request to buy shares.'],
+  ['setMinimumTribute(uint256)', '66', 'Set the minimum wei that must be sent with any request to buy shares.'],
   ['safeExecute(bytes)', '66', 'Execute some bytecode in the context of the dao after checking it for dangerous opcodes.'],
-  ['unsafeExecute(bytes)', '90', 'Execute some bytecode in the context of the dao without checking it for dangerous opcodes.'],
-  ['executeBuyOffer(address)', '50', 'Accept an offer to purchase shares of the dao.'],
-  ['addExtension((bytes32,address,bool,bytes,bytes4[]))', '66', 'Add an extension for use by the dao.'],
+  ['executeApplication(address)', '51', 'Accept an offer to purchase shares of the dao.'],
+  ['addExtension((bytes32,address,bool,bytes,bytes4[]))', '75', 'Add an extension for use by the dao.'],
   ['removeExtension(uint256)', '66', 'Remove an extension.'],
   ['mintShares(address,uint64)', '66', 'Create shares for a user.'],
-  ['setApprovalRequirement(bytes4,uint8)', '66', 'Set the approval requirement for a function as a percentage.'],
-  ['setProposalDuration(uint64)', '66', 'Set the number of blocks each proposal will be open for.']
+  ['setApprovalRequirement(bytes4,uint8)', '75', 'Set the approval requirement for a function as a percentage.'],
+  ['setProposalDuration(uint64)', '66', 'Set the number of blocks each proposal will be open for.'],
+  ['addToken(address)', '33', 'Add an ERC20 token for the DAO to use.'],
+  ['approveTokenTransfer(address,address,uint256)', '66', 'Approve another address to withdraw tokens owned by the DAO.'],
+  ['transferToken(address,address,uint256)', '66', 'Transfer an ERC20 token owned by the DAO.'],
+  ['receiveToken(address,address,uint256)', '255', 'Make the DAO call transferFrom on an ERC20 token.']
 ];
 
 const signatures = [];

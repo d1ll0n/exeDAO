@@ -24,7 +24,8 @@
     "packages/exedao-ui",
     "packages/exedao-js",
     "packages/exedao-app",
-    "packages/exedao-server"
+    "packages/exedao-server",
+    "packages/exedao-sol"
   ],
   "homepage": "https://github.com/d1ll0n/EXEdao-private#readme",
   "dependencies": {

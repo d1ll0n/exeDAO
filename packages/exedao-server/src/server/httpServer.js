@@ -26,6 +26,7 @@ module.exports = class HttpServer {
     app.use(bodyParser.json());
     app.use(cors())
     app.post('/login', (req, res) => middleware.handleLogin(req, res));
+    app.post('/putApplication', (req, res) => this.putApplication(req, res))
     app.use('/dao', (req, res, next) => middleware.checkToken(req, res, next));
     app.post('/dao/refresh', (req, res) => middleware.handleRefresh(req, res));
     // app.get('/authed/proposalMeta/:proposalMetaHash');
@@ -79,6 +80,22 @@ module.exports = class HttpServer {
         await this.saveFile(extPath, extFile, membersOnly);
       }
       await this.saveFile(filePath, file, membersOnly);
+      return res.json(putFileSuccess(fileHash));
+    }).catch((err) => {
+      console.error(err)
+      return res.status(400).json({ message: err.message });
+    });
+  }
+
+  putApplication(req, res) {
+    const {applicant, application} = req.body;
+    console.log(`got request /putApplication`)
+    this.exedao.verifyApplication(applicant, application).then(async () => {
+      const file = JSON.stringify(application);
+      const metahash = this.exedao.hasher.jsonSha3(application)
+      const fileHash = await toCid(metahash);
+      const filePath = toPath(fileHash);
+      await this.saveFile(filePath, file, false);
       return res.json(putFileSuccess(fileHash));
     }).catch((err) => {
       console.error(err)

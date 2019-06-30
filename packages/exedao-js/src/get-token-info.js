@@ -85,13 +85,14 @@ const getImageData = async (tokenAddress) => new Promise((resolve, reject) => {
   const xhr = new XMLHttpRequest();
   xhr.open('GET', 'https://raw.githubusercontent.com/TrustWallet/tokens/master/tokens/' + tokenAddress.toLowerCase() + '.png');
   xhr.addEventListener('readystatechange', () => {
-    if (xhr.readyState === 4) resolve(xhr.responseText);
+    if (xhr.readyState === 4) resolve('https://raw.githubusercontent.com/TrustWallet/tokens/master/tokens/' + tokenAddress.toLowerCase() + '.png');
+    // if (xhr.readyState === 4) resolve(xhr.responseText);
   });
   xhr.addEventListener('error', (e) => reject(e));
   xhr.send();
-}).then((resp) => resp.match('404') ? null : toBuffer(resp));
+}).then((resp) => resp.match('404') ? null : resp);
 
-const getInfoForToken = async (rpc, address) => ({
+const getTokenInfo = async (rpc, address) => ({
   address,
   name: await callGetterOrReturnFallback(rpc, address, getName, NAME_SIGNATURE, 'noname-' + address),
   symbol: await callGetterOrReturnFallback(rpc, address, getSymbol, SYMBOL_SIGNATURE, '000'),
@@ -99,9 +100,9 @@ const getInfoForToken = async (rpc, address) => ({
   image: await getImageData(address)
 });
 
-const getTokenInfo = async (rpc, tokenAddresses) => {
-  const pq = new PromiseQueue(MAX_JOBS);
-  return Promise.all(tokenAddresses.map((address) => getInfoForToken(rpc, address).catch((e) => ({ error: e }))));
+const getTokensInfo = async (rpc, tokenAddresses) => {
+  // const pq = new PromiseQueue(MAX_JOBS);
+  return Promise.all(tokenAddresses.map((address) => getTokenInfo(rpc, address).catch((e) => ({ error: e }))));
 };
 
-module.exports = getTokenInfo;
+module.exports = {getTokenInfo, getTokensInfo};

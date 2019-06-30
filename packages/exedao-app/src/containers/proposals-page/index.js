@@ -38,13 +38,6 @@ class Proposals extends Component {
     this.setState({open: false});
   }
 
-  /* handleVote = () => {
-    const {selected} = this.state;
-    const {submitVote, proposals} = this.props;
-    const proposal = selected && proposals.filter(p => p.proposalHash == selected)[0];
-    submitVote(proposal.function, ...proposal.arguments)
-  } */
-
   executeProposal = () => {
     const {selected} = this.state;
     const {exedao, proposals} = this.props;
@@ -103,7 +96,7 @@ class Proposals extends Component {
         }
       </GridList>
     );
-    return <Typography variant='subtitle1'>No open proposals.</Typography>
+    return <Typography variant='h3' style={{width: '100%', textAlign: 'center'}}>No open proposals.</Typography>
     //this.props.proposals.map((proposal, i) => <ProposalContainer key={i} title={proposal.proposalHash} />)
   }
 
@@ -126,9 +119,9 @@ class Proposals extends Component {
   </Button>
 
   render() {
-    const {loaded} = this.state;
     const {loggedIn} = this.props;
-    if (!loaded) return <Typography variant='subtitle1'>Loading...</Typography>
+    const {loaded} = this.state;
+    if (!loaded) return <Typography variant='h3' style={{width: '100%', textAlign: 'center'}}>Loading...</Typography>
     return <div style={{width: '100%'}}>
       <Grid container justify='center' direction='row' style={{marginTop: 10}}>
         <Grid item>
@@ -141,8 +134,8 @@ class Proposals extends Component {
   }
 }
 
-const mapStateToProps = ({exedao, web3}) => ({
-  proposals: exedao.exedao ? exedao.proposals : [],
+const mapStateToProps = ({exedao, web3, proposals}) => ({
+  proposals: proposals.proposals,
   loading: exedao.exedao == null,
   isDaoist: exedao.exedao && exedao.exedao.ownedShares > 0,
   loggedIn: web3.loggedIn,
@@ -154,7 +147,7 @@ const mapDispatchToProps = (dispatch) =>
     {
       getProposalMetaData,
       getOpenProposals,
-      goToForm: () => push('/submit-proposal'),
+      goToForm: () => push('/proposal-form'),
       requestWeb3,
       submitVote
     },

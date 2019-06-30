@@ -12,7 +12,7 @@ import "../lib/Indices.sol";
  */
 contract PermissionedStorage {
   uint64 internal _proposalDuration;
-  uint64 internal _lastExpiredProposal;
+  Indices.Index internal _lastExpiredProposal;
   Proposals.Proposal[] internal _proposals;
   mapping(bytes32 => Indices.Index) internal _proposalIndices;
   mapping(bytes4 => uint8) internal _approvalRequirements;
@@ -44,10 +44,12 @@ contract PermissionedStorage {
 
   function getOpenProposals() external view
   returns (Proposals.ProposalOutput[] memory proposals) {
-    uint256 size = _proposals.length - _lastExpiredProposal - 1;
+    Indices.Index memory lastExpired = _lastExpiredProposal;
+    uint256 startIndex = lastExpired.exists ? lastExpired.index + 1 : 0;
+    uint256 size = _proposals.length - startIndex;
     proposals = new Proposals.ProposalOutput[](size);
     for (uint256 i = 0; i < size; i++) {
-      uint256 index = _lastExpiredProposal + i + 1;
+      uint256 index = startIndex + i;
       Proposals.Proposal memory proposal = _proposals[index];
       bytes32 proposalHash = proposal.proposalHash;
       proposals[i] = Proposals.ProposalOutput(

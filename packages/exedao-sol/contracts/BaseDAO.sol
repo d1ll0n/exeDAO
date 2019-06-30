@@ -14,6 +14,7 @@ contract BaseDAO is IBaseDAO, BaseDAOStorage {
   event SharesBurned(address indexed daoist, uint64 shares);
   event SharesMinted(address indexed daoist, uint64 shares);
   event TokenAdded(address indexed tokenAddress);
+  event TokenRemoved(address indexed tokenAddress);
   event TokenTransferred(address indexed tokenAddress, address indexed recipient, uint256 amount);
   event TokenReceived(address indexed tokenAddress, address indexed sender, uint256 amount);
 
@@ -72,6 +73,14 @@ contract BaseDAO is IBaseDAO, BaseDAOStorage {
     _tokenIndices[tokenAddress] = Indices.Index(true, uint248(_tokens.length));
     _tokens.push(IERC20(tokenAddress));
     emit TokenAdded(tokenAddress);
+  }
+
+  function _removeToken(address tokenAddress) internal {
+    Indices.Index memory index = _tokenIndices[tokenAddress];
+    require(index.exists, "ExeDAO: Token not found");
+    delete _tokenIndices[tokenAddress];
+    delete _tokens[index.index];
+    emit TokenRemoved(tokenAddress);
   }
 
   function _approveTokenTransfer(address tokenAddress, address spender, uint256 amount) internal {

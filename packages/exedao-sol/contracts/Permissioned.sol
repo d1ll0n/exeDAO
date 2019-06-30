@@ -47,6 +47,10 @@ contract Permissioned is IPermissioned, BaseDAO, PermissionedStorage {
     if (_voteAndContinue()) _addToken(tokenAddress);
   }
 
+  function removeToken(address tokenAddress) external {
+    if (_voteAndContinue()) _removeToken(tokenAddress);
+  }
+
   function approveTokenTransfer(address tokenAddress, address spender, uint256 amount) external {
     if (_voteAndContinue()) _approveTokenTransfer(tokenAddress, spender, amount);
   }
@@ -104,7 +108,7 @@ contract Permissioned is IPermissioned, BaseDAO, PermissionedStorage {
       delete _proposals[index.index];
       delete _proposalIndices[proposalHash];
       if (_proposalMetaHashes[proposalHash] != 0) delete _proposalMetaHashes[proposalHash];
-      if (index.index > _lastExpiredProposal) _lastExpiredProposal = uint64(index.index);
+      if (index.index > _lastExpiredProposal.index) _lastExpiredProposal = index;
       emit ProposalExpiration(proposalHash);
     }
   }

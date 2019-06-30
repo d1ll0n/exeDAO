@@ -6,17 +6,16 @@ const deploy = require('./deploy');
 const Compiler = require('./util/compiler');
 const API = require('./util/api');
 const {functionDescriptions} = require('./defaults');
-// const mhA = require('multihashing-async')
-
-
+const {getTokenInfo, getTokensInfo} = require('./get-token-info')
 
 module.exports = class ExeDAO extends Contract {
-  constructor(web3, userAddress, contract, apiUrl) {
+  constructor(web3, userAddress, contract, apiUrl, rpcUrl) {
     super(web3, userAddress, contract);
     this.hasher = new Hasher(web3);
     this.api = new API(web3, userAddress, apiUrl);
     this.approvalRequirements = {};
     this.functionDescriptions = functionDescriptions;
+    this.rpcUrl = rpcUrl || 'https://mainnet.infura.io/v3/694db1a88f814a29927305f7b98cf7a3';
   }
 
   static async deploy(web3, address, options) {
@@ -35,10 +34,10 @@ module.exports = class ExeDAO extends Contract {
   async init() {
     await this.updateRequirements();
     this.totalShares = await this.getTotalShares();
-    this.ownedShares = this.address ? await this.getShares(this.address) : 0;
-    this.tokens = await this.getTokens();
+    this.ownedShares = this.address ? await this.getShares(this.address).catch(() => 0) : 0;
+    // this.tokens = await this.getTokens();
     this.balance = await this.web3.eth.getBalance(this.contract._address);
-    this.buyRequests = await this.getOpenBuyRequests();
+    this.applications = await this.getOpenApplications();
     this.daoists = await this.getDaoists();
   }
 
@@ -82,8 +81,8 @@ module.exports = class ExeDAO extends Contract {
   }
 
   async updateRequirements(funcSigs) {
-    funcSigs = funcSigs || [...this.abi.map(signatureOf)];
-    const approvalRequirements = await this.getApprovalRequirements(funcSigs);
+    funcSigs = funcSigs || this.abi.map(signatureOf);
+    const approvalRequirements = await this.getApprovalRequirements([...funcSigs]).catch(e => console.log(`got error ${e.message}`));
     approvalRequirements.forEach((requirement, i) => {
       const funcSig = funcSigs[i]
       this.approvalRequirements[funcSig] = requirement;
@@ -155,7 +154,17 @@ module.exports = class ExeDAO extends Contract {
     const extension = await this.getExtension(index);
     return metahash == extension.metaHash;
   }
+
+  async verifyApplication(applicant, application) {
+    const {metaHash} = await this.getApplication(applicant);
+    if (!this.verifyJsonHash(metaHash, application)) throw new Error(`Application hash does not match: expected ${metaHash}`)
+  }
   /* </VERIFIERS> */
+
+  /* <SCRAPER> */
+  getTokenInfo(address) { return getTokenInfo(this.rpcUrl, address); }
+  getTokensInfo(addresses) { return getTokensInfo(this.rpcUrl, addresses); }
+  /* </SCRAPER> */
 
   /* <GETTERS> */
   getDaoist(address) { return this.call('getDaoist', address); }
@@ -163,6 +172,20 @@ module.exports = class ExeDAO extends Contract {
 
   getToken(address) { return this.call('getToken', address); }
   getTokens() { return this.call('getTokens'); }
+  async getTokensWithInfo() {
+    const tokens = await this.getTokens();
+    const tokenInfo = await this.getTokensInfo(tokens.map(token => token.tokenAddress));
+    for (let info of tokenInfo) {
+      let token = tokens.filter(token => token.tokenAddress == tokenInfo.address)
+      if (token.length) token = token[0];
+      else continue;
+      token.name = info.name;
+      token.symbol = info.symbol;
+      token.price = info.ethPrice;
+      token.logo = info.image;
+    }
+    return tokens;
+  }
 
   getShares(address) { return this.call('getDaoist', address).then(daoist => daoist.shares); }
   getTotalShares() { return this.call('getTotalShares'); }
@@ -174,8 +197,27 @@ module.exports = class ExeDAO extends Contract {
   getOpenProposals() { return this.call('getOpenProposals'); }
   getProposalMetaHash(proposalHash) { return this.call('getProposalMetaHash', proposalHash); }
   
-  getBuyRequest(address) { return this.call('getBuyRequest', address); }
-  getOpenBuyRequests() { return this.call('getOpenBuyRequests'); }
+  getApplication(address) {
+    return this.call('getApplication', address)
+      .then((application) => {
+        application.tokenTributes = application.tokenTributes.map(
+          (tokenAddress, i) => ({tokenAddress, value: application.tokenTributeValues[i]}));
+        application.proposalHash = this.hashProposal('executeApplication', application.applicant);
+        return application;
+      }); 
+  }
+  
+  getOpenApplications() {
+    return this.call('getOpenApplications')
+      .then((applications) => {
+        for (let application of applications) {
+          application.proposalHash = this.hashProposal('executeApplication', application.applicant);
+          application.tokenTributes = application.tokenTributes.map(
+            (tokenAddress, i) => ({tokenAddress, value: application.tokenTributeValues[i]}));
+        }
+        return applications
+      });
+  }
 
   getExtension(index) { return this.call('getExtension', index); }
   getExtensions() { return this.call('getExtensions'); }
@@ -188,46 +230,65 @@ module.exports = class ExeDAO extends Contract {
   }
   /* </GETTERS> */
 
-  /* <PROPOSALS> */
-  acceptBuyRequest(applicant, gas) { return this.send('executeBuyRequest', gas, 0, applicant); }
-  cancelBuyRequest(gas) { return this.send('executeBuyRequest', gas, 0, this.address); }
-  submitOrVote(proposalHash, gas) { return this.send('submitOrVote', gas, 0, proposalHash); }
-  async requestShares({shares, wei, tokens = [], name, description}, gas) {
+  /* <APPLICATIONS> */
+  acceptApplication(applicant, gas) { return this.sendProposal('executeApplication', gas, 0, applicant); }
+
+  cancelApplication(gas) { return this.send('executeApplication', gas, 0, this.address); }
+
+  async submitApplication({shares, weiTribute: wei, tokenTributes: tokens = [], name, description}, gas) {
     for (let token of tokens) {
       const {tokenAddress, value} = token;
       const calldata = this.encodeERC20Call('approve', this.contract._address, value);
       await this.sendRaw(calldata, null, 0, tokenAddress);
     }
     const metaHash = this.hasher.jsonSha3({name, description})
-    return this.send('requestShares', gas, wei, metaHash, shares, tokens);
+    return this.send('submitApplication', gas, wei, metaHash, shares, tokens);
   }
+  /* </APPLICATIONS> */
+
+  /* <PROPOSAL UTILS> */
+  submitOrVote(proposalHash, gas) { return this.send('submitOrVote', gas, 0, proposalHash); }
+
   async sendProposal(method, gas, value, ...args) {
     if (!this.contract.methods[method]) throw new Error(`No method for ${method}`);
     const data = this.contract.methods[method](...args).encodeABI();
     const proposalHash = this.hasher.sha3Bytes(data);
-    let {votes, proposalIndex} = await this.getProposal(proposalHash);
-    if (proposalIndex == '0') votes = 0;
+    let {votes} = await this.getProposal(proposalHash).catch(() => ({votes: 0}));
     const signature = data.slice(0, 10);
-    console.log(signature)
     const requirement = this.approvalRequirements[signature];
     if (requirement == 0) throw new Error('Approval requirement not set, try setApprovalRequirement');
     const totalShares = await this.getTotalShares();
     const remainder = votesNeeded(requirement, totalShares, votes);
     const shares = await this.getShares(this.address);
-    if (shares >= remainder) return this.sendRaw(data, gas, value);
-    return this.voteByHash(proposalHash, gas)
+    console.log(`Sending proposal ${method} ${args}`)
+    if (shares >= remainder) {
+      console.log(`Sending raw ${data}`)
+      const receipt = await this.sendRaw(data, gas, value);
+      console.log(receipt)
+      return receipt;
+    }
+    console.log(`Sending vote by hash`)
+    const receipt = await this.submitOrVote(proposalHash, gas);
+    console.log(receipt);
+    return receipt;
   }
 
-  mintShares(address, shares, gas) { return this.sendProposal('mintShares', gas, 0, address, shares); }
-  setMinimumBuyRequestValue(minValue, gas) { return this.sendProposal('setMinimumRequestValue', gas, 0, minValue); }
-  safeExecute(bytecode, gas) { return this.sendProposal('safeExecute', gas, 0, bytecode); }
-  addExtension(extension, gas) { return this.sendProposal('addExtension', gas, 0, extension); }
-  removeExtension(address, gas) { return this.sendProposal('removeExtension', gas, 0, address); }
-  setApprovalRequirement(sig, req, gas) { return this.sendProposal('setApprovalRequirement', gas, 0, sig, req); }
   submitWithMetaHash(proposalHash, metaHash, gas) {
     return this.send('submitWithMetaHash', gas, 0, proposalHash, metaHash); 
   }
+  /* </PROPOSAL UTILS> */
+
+  /* <DAO MANAGEMENT PROPOSALS> */
+  setMinimumTribute(minValue, gas) { return this.sendProposal('setMinimumRequestValue', gas, 0, minValue); }
+  setApprovalRequirement(sig, req, gas) { return this.sendProposal('setApprovalRequirement', gas, 0, sig, req); }
+  mintShares(address, shares, gas) { return this.sendProposal('mintShares', gas, 0, address, shares); }
+  addExtension(extension, gas) { return this.sendProposal('addExtension', gas, 0, extension); }
+  removeExtension(address, gas) { return this.sendProposal('removeExtension', gas, 0, address); }
   addToken(tokenAddress, gas) { return this.sendProposal('addToken', gas, 0, tokenAddress); }
+  /* </DAO MANAGEMENT PROPOSALS> */
+
+  /* <PROPOSALS> */
+  safeExecute(bytecode, gas) { return this.sendProposal('safeExecute', gas, 0, bytecode); }
   approveTokenTransfer(tokenAddress, spender, amount, gas) {
     return this.sendProposal('approveTokenTransfer', gas, 0, tokenAddress, spender, amount);
   }
@@ -239,13 +300,3 @@ module.exports = class ExeDAO extends Contract {
   }
   /* </PROPOSALS> */
 }
-/*
-setMinimumRequestValue(uint)
-safeExecute(bytes)
-unsafeExecute(bytes)
-executeBuyOffer(address)
-addExtension(address,bool,string[])
-removeExtension(uint)
-mintShares(address,uint32)
-setProposalRequirement(bytes4,uint8)
-*/

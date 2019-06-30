@@ -60,10 +60,7 @@ module.exports = describe('Extendable.sol', () => {
     const src = fs.readFileSync(path.join(__dirname, 'sol', 'Output.sol'), 'utf8')
     const compiled = solc.compile('Output', src)
     const outputSig = signatureOf('add(uint256,uint256)')
-    console.log('bytecode!')
-    console.log(compiled.bytecode)
     const ext = new web3.eth.Contract(compiled.abi)// await deployExtension(accounts[0], compiled.bytecode, compiled.abi)
-    console.log('a', 0)
     let payload = contract.methods.addExtension({
       metaHash: z32,
       extensionAddress: z20,

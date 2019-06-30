@@ -6,16 +6,16 @@ import "./storage/ExeDAOStorage.sol";
 import "./interfaces/IExeDAO.sol";
 
 contract ExeDAO is IExeDAO, Extendable, ExeDAOStorage {
-  event BuyRequestAdded(address applicant, uint64 shares);
-  event BuyRequestCancelled(address applicant);
+  event ApplicationAdded(address applicant, uint64 shares);
+  event ApplicationCanceled(address applicant);
 
   constructor(
     uint64 shares, uint64 _proposalDuration,
     bytes4[] memory funcSigs, uint8[] memory requirements
   ) public payable Extendable(shares, _proposalDuration, funcSigs, requirements) {}
 
-  function setBuyRequestMinimum(uint256 minimum) external {
-    if (_voteAndContinue()) _minimumRequestValue = minimum;
+  function setMinimumTribute(uint256 minimum) external {
+    if (_voteAndContinue()) _minimumTribute = minimum;
   }
 
   function safeExecute(bytes calldata bytecode) external {
@@ -24,14 +24,14 @@ contract ExeDAO is IExeDAO, Extendable, ExeDAOStorage {
   }
 
   /**
-   * @dev Lock some eth and make a request to buy shares.
+   * @dev Apply to join the DAO and lock some wei/tokens.
    */
-  function requestShares(bytes32 metaHash, uint64 shares, DaoLib.TokenValue[] calldata tokenTributes) external payable {
+  function submitApplication(bytes32 metaHash, uint64 shares, DaoLib.TokenValue[] calldata tokenTributes) external payable {
     require(!_daoistIndices[msg.sender].exists, "ExeDAO: Already a daoist");
-    Indices.Index memory index = _buyRequestIndices[msg.sender];
-    require(!index.exists, "ExeDAO: Buy request pending");
-    require(shares > 0, "ExeDAO: Can not request 0 shares");
-    require(msg.value >= _minimumRequestValue, "ExeDAO: Insufficient payment for buy request");
+    Indices.Index memory index = _applicationIndices[msg.sender];
+    require(!index.exists, "ExeDAO: Application pending");
+    require(shares > 0, "ExeDAO: Can not apply for 0 shares");
+    require(msg.value >= _minimumTribute, "ExeDAO: Insufficient wei tribute for application");
     uint256 tokenCount = tokenTributes.length;
     address[] memory lockedTokens = new address[](tokenCount);
     uint256[] memory lockedTokenValues = new uint256[](tokenCount);
@@ -41,31 +41,21 @@ contract ExeDAO is IExeDAO, Extendable, ExeDAOStorage {
       lockedTokens[i] = tokenTribute.tokenAddress;
       lockedTokenValues[i] = tokenTribute.value;
     }
-    DaoLib.BuyRequest memory buyRequest = DaoLib.BuyRequest({
-      applicant: msg.sender,
-      metaHash: metaHash,
-      lockedWei: msg.value,
-      lockedTokens: lockedTokens,
-      lockedTokenValues: lockedTokenValues,
-      shares: shares
-    });
-    index = Indices.Index(true, uint248(_buyRequests.length));
-    _buyRequestIndices[msg.sender] = index;
-    _buyRequests.push(buyRequest);
-    emit BuyRequestAdded(msg.sender, shares);
-    /* for (uint256 i = 0; i < tokenTributes.length; i++) {
-      _buyRequests[index.index].lockedTokens.push(tokenTributes[i]);
-    } */
+    DaoLib.Application memory application = DaoLib.Application(metaHash, msg.value, msg.sender, lockedTokens, lockedTokenValues, shares);
+    index = Indices.Index(true, uint248(_applications.length));
+    _applicationIndices[msg.sender] = index;
+    _applications.push(application);
+    emit ApplicationAdded(msg.sender, shares);
   }
 
   /**
    * @dev For buyer, cancel the offer and reclaim wei if a proposal has not been
    * started by a daoist or has expired. For daoists, vote to accept the offer.
    */
-  function executeBuyRequest(address applicant) external {
-    Indices.Index memory index = _buyRequestIndices[msg.sender];
-    require(index.exists, "ExeDAO: Buy request not found");
-    DaoLib.BuyRequest memory request = _buyRequests[index.index];
+  function executeApplication(address applicant) external {
+    Indices.Index memory index = _applicationIndices[applicant];
+    require(index.exists, "ExeDAO: Application not found");
+    DaoLib.Application memory application = _applications[index.index];
     if (msg.sender == applicant) {
       Indices.Index memory proposalIndex = _proposalIndices[keccak256(msg.data)];
       if (proposalIndex.exists) {
@@ -73,20 +63,20 @@ contract ExeDAO is IExeDAO, Extendable, ExeDAOStorage {
           block.number >= _proposals[index.index].expiryBlock,
           "ExeDAO: Must wait for proposal to finish"
         );
-        if (index.index > _lastExpiredBuyRequest) _lastExpiredBuyRequest = index.index;
+        if (index.index > _lastExpiredApplication.index) _lastExpiredApplication = index;
       }
-      delete _buyRequests[index.index];
-      delete _buyRequestIndices[applicant];
-      emit BuyRequestCancelled(applicant);
-      msg.sender.transfer(request.lockedWei);
-      for (uint256 i = 0; i < request.lockedTokens.length; i++) {
-        _transferToken(request.lockedTokens[i], msg.sender, request.lockedTokenValues[i]);
+      delete _applications[index.index];
+      delete _applicationIndices[applicant];
+      emit ApplicationCanceled(applicant);
+      msg.sender.transfer(application.weiTribute);
+      for (uint256 i = 0; i < application.tokenTributes.length; i++) {
+        _transferToken(application.tokenTributes[i], msg.sender, application.tokenTributeValues[i]);
       }
     }
     else if (_voteAndContinue()) {
-      delete _buyRequests[index.index];
-      delete _buyRequestIndices[applicant];
-      _mintShares(applicant, request.shares);
+      delete _applications[index.index];
+      delete _applicationIndices[applicant];
+      _mintShares(applicant, application.shares);
     }
   }
 }

@@ -1,18 +1,18 @@
 import React, { Component } from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import styles from './styles';
-import { Route, Link } from 'react-router-dom';
-import { push } from 'connected-react-router';
+import { Route } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { requestWeb3, initWeb3 } from '../../actions/web3';
+import { initWeb3 } from '../../actions/web3';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Home from '../home';
 import Navbar from '../navbar';
 import Web3Modal from '../web3-modal';
-import Proposal from '../../components/proposal-form';
-import Proposals from '../proposals-page';
-import BuyRequestForm from '../../components/buyrequest-form'
+import ProposalForm from '../proposal-form';
+import ProposalsPage from '../proposals-page';
+import ApplicationForm from '../application-form'
+import ApplicationsPage from '../applications-page';
 
 class App extends Component {
   componentDidMount = () => {
@@ -31,17 +31,17 @@ class App extends Component {
   renderMain = () => (
     <main>
       <Web3Modal />
-      <Route exact path="/" component={Home} />
-      <Route exact path="/submit-proposal" component={Proposal} /> 
-      <Route exact path='/proposals' component={Proposals} />
-      <Route exact path='/application-form' component={BuyRequestForm} />
+      <Route exact path='/' component={Home} />
+      <Route exact path='/proposals' component={ProposalsPage} />
+      <Route exact path='/applications' component={ApplicationsPage} />
+      <Route exact path='/application-form' component={ApplicationForm} />
+      <Route exact path='/proposal-form' component={ProposalForm} /> 
     </main>
   );
 
   render() {
     return (
       <div>
-        {/* <LoginSnack /> */}
         {this.renderHeader()}
         {this.renderMain()}     
       </div>
@@ -49,22 +49,16 @@ class App extends Component {
   }
 }
 
-const mapStateToProps = ({ web3, wallet }) => ({
+const mapStateToProps = ({ web3 }) => ({
   account: web3.accounts[0],
-  wallet: wallet.wallet,
   loading: web3.loading,
   loaded: web3.loaded,
-  owners: wallet.owners,
 });
 
 const mapDispatchToProps = (dispatch) =>
   bindActionCreators(
     {
-      requestWeb3,
       initWeb3,
-      goHome: () => push('/'),
-      goProp: () => push('/proposals'),
-      goVote: () => push('/wallet/vote'),
     },
     dispatch,
   );

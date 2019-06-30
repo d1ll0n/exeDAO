@@ -39,60 +39,9 @@
     },
     {
       "constant": true,
-      "inputs": [],
-      "name": "getBuyRequestMinimum",
-      "outputs": [{ "name": "minimum", "type": "uint256" }],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": false,
-      "inputs": [
-        { "name": "metaHash", "type": "bytes32" },
-        { "name": "shares", "type": "uint64" },
-        {
-          "components": [
-            { "name": "tokenAddress", "type": "address" },
-            { "name": "value", "type": "uint256" }
-          ],
-          "name": "tokenTributes",
-          "type": "tuple[]"
-        }
-      ],
-      "name": "requestShares",
-      "outputs": [],
-      "payable": true,
-      "stateMutability": "payable",
-      "type": "function"
-    },
-    {
-      "constant": true,
       "inputs": [{ "name": "proposalHash", "type": "bytes32" }],
       "name": "getProposalMetaHash",
       "outputs": [{ "name": "metaHash", "type": "bytes32" }],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [{ "name": "applicant", "type": "address" }],
-      "name": "getBuyRequest",
-      "outputs": [
-        {
-          "components": [
-            { "name": "applicant", "type": "address" },
-            { "name": "metaHash", "type": "bytes32" },
-            { "name": "lockedWei", "type": "uint256" },
-            { "name": "lockedTokens", "type": "address[]" },
-            { "name": "lockedTokenValues", "type": "uint256[]" },
-            { "name": "shares", "type": "uint64" }
-          ],
-          "name": "buyRequest",
-          "type": "tuple"
-        }
-      ],
       "payable": false,
       "stateMutability": "view",
       "type": "function"
@@ -266,24 +215,44 @@
     },
     {
       "constant": true,
-      "inputs": [],
-      "name": "getOpenBuyRequests",
+      "inputs": [{ "name": "applicant", "type": "address" }],
+      "name": "getApplication",
       "outputs": [
         {
           "components": [
-            { "name": "applicant", "type": "address" },
             { "name": "metaHash", "type": "bytes32" },
-            { "name": "lockedWei", "type": "uint256" },
-            { "name": "lockedTokens", "type": "address[]" },
-            { "name": "lockedTokenValues", "type": "uint256[]" },
+            { "name": "weiTribute", "type": "uint256" },
+            { "name": "applicant", "type": "address" },
+            { "name": "tokenTributes", "type": "address[]" },
+            { "name": "tokenTributeValues", "type": "uint256[]" },
             { "name": "shares", "type": "uint64" }
           ],
-          "name": "buyRequests",
-          "type": "tuple[]"
+          "name": "application",
+          "type": "tuple"
         }
       ],
       "payable": false,
       "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        { "name": "metaHash", "type": "bytes32" },
+        { "name": "shares", "type": "uint64" },
+        {
+          "components": [
+            { "name": "tokenAddress", "type": "address" },
+            { "name": "value", "type": "uint256" }
+          ],
+          "name": "tokenTributes",
+          "type": "tuple[]"
+        }
+      ],
+      "name": "submitApplication",
+      "outputs": [],
+      "payable": true,
+      "stateMutability": "payable",
       "type": "function"
     },
     {
@@ -312,6 +281,15 @@
       "inputs": [{ "name": "funcSigs", "type": "bytes4[]" }],
       "name": "getApprovalRequirements",
       "outputs": [{ "name": "requirements", "type": "uint8[]" }],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "getMinimumTribute",
+      "outputs": [{ "name": "minimum", "type": "uint256" }],
       "payable": false,
       "stateMutability": "view",
       "type": "function"
@@ -350,15 +328,6 @@
       "constant": false,
       "inputs": [{ "name": "extIndex", "type": "uint256" }],
       "name": "removeExtension",
-      "outputs": [],
-      "payable": false,
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "constant": false,
-      "inputs": [{ "name": "minimum", "type": "uint256" }],
-      "name": "setBuyRequestMinimum",
       "outputs": [],
       "payable": false,
       "stateMutability": "nonpayable",
@@ -428,10 +397,41 @@
     {
       "constant": false,
       "inputs": [{ "name": "applicant", "type": "address" }],
-      "name": "executeBuyRequest",
+      "name": "executeApplication",
       "outputs": [],
       "payable": false,
       "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [{ "name": "minimum", "type": "uint256" }],
+      "name": "setMinimumTribute",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "getOpenApplications",
+      "outputs": [
+        {
+          "components": [
+            { "name": "metaHash", "type": "bytes32" },
+            { "name": "weiTribute", "type": "uint256" },
+            { "name": "applicant", "type": "address" },
+            { "name": "tokenTributes", "type": "address[]" },
+            { "name": "tokenTributeValues", "type": "uint256[]" },
+            { "name": "shares", "type": "uint64" }
+          ],
+          "name": "applications",
+          "type": "tuple[]"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
       "type": "function"
     },
     {
@@ -495,13 +495,13 @@
         { "indexed": false, "name": "applicant", "type": "address" },
         { "indexed": false, "name": "shares", "type": "uint64" }
       ],
-      "name": "BuyRequestAdded",
+      "name": "ApplicationAdded",
       "type": "event"
     },
     {
       "anonymous": false,
       "inputs": [{ "indexed": false, "name": "applicant", "type": "address" }],
-      "name": "BuyRequestCancelled",
+      "name": "ApplicationCanceled",
       "type": "event"
     },
     {

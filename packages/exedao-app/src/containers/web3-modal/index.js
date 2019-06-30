@@ -9,7 +9,7 @@ import Grid from '@material-ui/core/Grid'
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Tooltip from '@material-ui/core/Tooltip';
 import { bindActionCreators } from 'redux'
-import { setWeb3, cancelRequest } from '../../actions/web3'
+import { initWeb3, cancelRequest } from '../../actions/web3'
 
 import fortmaticLogo from './fortmatic.png';
 import metamaskLogo from './metamask.png'
@@ -21,7 +21,7 @@ class Web3Modal extends Component {
     if (name == 'fortmatic') await this.importFortmatic();
     if (window.ethereum) await window.ethereum.enable();
     await new Promise(resolve => setTimeout(resolve, 500));
-    this.props.setWeb3();
+    this.props.initWeb3();
   }
 
   importTorus = async () => {
@@ -95,7 +95,7 @@ const mapStateToProps = ({ web3 }) => ({
 const mapDispatchToProps = dispatch =>
   bindActionCreators(
     {
-      setWeb3,
+      initWeb3,
       cancelRequest,
     },
     dispatch
