@@ -6,7 +6,8 @@ const CID = require('cids');
 const fs = require('fs');
 const path = require('path');
 const {putFileSuccess, fileNotFound} = require('../lib/responses');
-
+const {util} = require('exedao-js')
+const detJson = util.deterministicJSON;
 const filesPath = path.join(__dirname, '..', 'data');
 if (!fs.existsSync(filesPath)) fs.mkdirSync(filesPath);
 const toPath = proposalHash => path.join(filesPath, proposalHash.toString('hex'));
@@ -43,6 +44,7 @@ module.exports = class HttpServer {
   }
 
   async saveFile(filePath, file, membersOnly) {
+    if (file.length > 51200) throw new Error('File too large. Maximum size: 50kb')
     membersOnly = membersOnly == 'true';
     if (fs.existsSync(filePath)) throw new Error('File already uploaded.')
     fs.writeFileSync(filePath, Buffer.from(file));
@@ -69,18 +71,18 @@ module.exports = class HttpServer {
     const {proposalHash, data, membersOnly, extension} = req.body;
     console.log(`got request /dao/putProposal`)
     this.exedao.verifyProposalMeta(proposalHash, data, extension).then(async () => {
-      const file = JSON.stringify(data);
+      const file = detJson(data);
       const metahash = this.exedao.hasher.jsonSha3(data)
       const fileHash = await toCid(metahash);
       const filePath = toPath(fileHash);
       if (extension && data.function == 'addExtension') {
-        const extFile = JSON.stringify(extension);
+        const extFile = detJson(extension);
         const extHash = await mh(extFile, 'sha3-256');
         const extPath = toPath(extHash);
         await this.saveFile(extPath, extFile, membersOnly);
       }
       await this.saveFile(filePath, file, membersOnly);
-      return res.json(putFileSuccess(fileHash));
+      return res.json({data: putFileSuccess(fileHash)});
     }).catch((err) => {
       console.error(err)
       return res.status(400).json({ message: err.message });
@@ -91,7 +93,7 @@ module.exports = class HttpServer {
     const {applicant, application} = req.body;
     console.log(`got request /putApplication`)
     this.exedao.verifyApplication(applicant, application).then(async () => {
-      const file = JSON.stringify(application);
+      const file = detJson(application);
       const metahash = this.exedao.hasher.jsonSha3(application)
       const fileHash = await toCid(metahash);
       const filePath = toPath(fileHash);

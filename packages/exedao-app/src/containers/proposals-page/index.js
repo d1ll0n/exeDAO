@@ -18,6 +18,7 @@ class Proposals extends Component {
 
   loadProposals = () => {
     if (!this.props.loading && !this.state.loaded) {
+      console.log('getting props')
       this.props.getOpenProposals();
       this.setState({loaded: true});
     }
@@ -42,7 +43,10 @@ class Proposals extends Component {
     const {selected} = this.state;
     const {exedao, proposals} = this.props;
     const proposal = selected && proposals.filter(p => p.proposalHash == selected)[0];
-    exedao.sendProposal(proposal.function, 250000, 0, ...proposal.arguments).then(console.log)
+    if (proposal.functionName == 'safeExecute') {
+      exedao.safeExecute(proposal.arguments[0], 250000)
+    }
+    else exedao.sendProposal(proposal.function, 250000, 0, ...proposal.arguments).then(console.log)
   }
   
   renderProposalDetail = () => {

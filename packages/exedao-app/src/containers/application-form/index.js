@@ -1,5 +1,6 @@
 import React, { Component, Fragment } from 'react';
 import { connect } from 'react-redux';
+import { push } from 'connected-react-router';
 import { bindActionCreators } from 'redux';
 import { withStyles } from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper';
@@ -24,13 +25,13 @@ class BuyRequestForm extends Component {
         selectedTokens: [],
     }
 
-    handleSubmit = () => {
+    handleSubmit = async () => {
+        const {exedao} = this.props;
         const {name, description, selectedTokens: tokenTributes, weiTribute: eth, shares} = this.state;
         const weiTribute = parseInt(eth) * 1e18;
         const app = {name, description, tokenTributes, weiTribute, shares};
-        this.props.submitApplication(app);
-        console.log(app)
-        console.log("SUBMITTED YAYYYYYYYYY !!!")
+        await submitApplication(exedao, app);
+        this.props.goApp()
     };
 
 
@@ -55,7 +56,11 @@ class BuyRequestForm extends Component {
     handleChange = (property, value) => this.setState({[property]: value})
 
     renderPage1 = () => <Fragment>
+        <a href='https://discord.gg/qKE4zT' target='_blank'>
+            Before submitting an application, we encourage you to join our Discord server.
+        </a>
         <TextField
+             style={{marginTop: 25}}
             placeholder="Name" value={this.state.name} type="text" variant='outlined'
             onChange={({target: {value}}) => this.handleChange('name', value)}
         />
@@ -188,13 +193,14 @@ class BuyRequestForm extends Component {
 };
 
 const mapStateToProps = ({exedao}) => ({
-    tokens: exedao.exedao && exedao.exedao.tokens
+    tokens: exedao.exedao && exedao.exedao.tokens,
+    exedao: exedao.exedao
 })
 
 const mapDispatchToProps = (dispatch) =>
   bindActionCreators(
     {
-    submitApplication,
+        goApp: () => push('/applications'),
     },
     dispatch,
   );

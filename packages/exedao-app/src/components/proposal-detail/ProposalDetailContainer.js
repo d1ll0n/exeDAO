@@ -3,12 +3,16 @@ import {
 	Paper,
 	Grid,
 	Typography,
-	LinearProgress
+	LinearProgress,
+	Button
 } from '@material-ui/core';
 
 import ArgsTable from '../args-table';
+import ScriptPreview from '../script-preview';
 
 class ProposalDetailContainer extends Component {
+	state = {showScript: false}
+
 	componentWillMount() {
 		document.addEventListener('mousedown', this.handleClickOutsideModal, false);
 	}
@@ -20,6 +24,18 @@ class ProposalDetailContainer extends Component {
   handleClickOutsideModal = (e) => {
     if (!this.node.contains || this.node.contains(e.target)) return;
     this.onClose();
+	}
+
+	handleToggleScriptPreview = () => this.setState({showScript: !this.state.showScript});
+
+	renderScriptPreview = () => {
+		const {showScript} = this.state;
+		const {proposal} = this.props;
+		if (proposal.functionName !== 'safeExecute') return '';
+		return <Fragment>
+			<ScriptPreview show={showScript} onClose={this.handleToggleScriptPreview} script={proposal.sources['Payload.sol'].content} />
+			<Button variant='contained' onClick={this.handleToggleScriptPreview} color='primary'>Show Script</Button>
+		</Fragment>
 	}
 	
 	renderHeader = () => {
@@ -35,6 +51,7 @@ class ProposalDetailContainer extends Component {
 					justify="center"
 					alignItems="flex-start"
 				>
+					{this.renderScriptPreview()}
 					{
 						title && <Grid item style={{ marginBottom: 5 }}>
 						<Typography variant='subtitle1'>Title:</Typography>

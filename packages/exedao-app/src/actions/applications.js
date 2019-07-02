@@ -1,12 +1,9 @@
 import {ADD_APPLICATIONS, SET_APPLICATION_DETAILS} from '../store/reducers/applications';
 
-export const submitApplication = ({name, description, tokenTributes, shares, weiTribute}) => {
-  return async (dispatch, getState) => {
-    const exedao = getState().exedao.exedao;
-    await exedao.submitApplication({shares, weiTribute, tokenTributes, name, description}, 350000);
-    const hash = await exedao.api.putApplication({name, description});
-    console.log(`Application hash submitted to server -- ${hash}`)
-  }
+export const submitApplication = async (exedao, {name, description, tokenTributes, shares, weiTribute}) => {
+  await exedao.submitApplication({shares, weiTribute, tokenTributes, name, description}, 350000);
+  const hash = await exedao.api.putApplication({name, description});
+  console.log(`Application hash submitted to server -- ${hash}`)
 }
 
 export const acceptApplication = (applicant) => {
@@ -27,7 +24,8 @@ export const getApplicationDetails = (applicant, metaHash) => {
 export const getOpenApplications = () => {
   return async (dispatch, getState) => {
     const exedao = getState().exedao.exedao;
+    if (!exedao) return;
     const applications = await exedao.getOpenApplications()
-    dispatch({type: ADD_APPLICATIONS, applications}) 
+    dispatch({type: ADD_APPLICATIONS, applications})
   }
 }

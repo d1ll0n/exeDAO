@@ -35,9 +35,8 @@ module.exports = class ExeDAO extends Contract {
     await this.updateRequirements();
     this.totalShares = await this.getTotalShares();
     this.ownedShares = this.address ? await this.getShares(this.address).catch(() => 0) : 0;
-    // this.tokens = await this.getTokens();
+    this.tokens = await this.getTokens();
     this.balance = await this.web3.eth.getBalance(this.contract._address);
-    this.applications = await this.getOpenApplications();
     this.daoists = await this.getDaoists();
   }
 
@@ -111,6 +110,7 @@ module.exports = class ExeDAO extends Contract {
   }
 
   async verifyProposalMeta(proposalHash, metadata, extMeta) {
+    console.log(typeof metadata)
     // verify calldata
     const calldataHash = this.hashProposal(metadata.function, ...metadata.arguments);
     if (calldataHash != proposalHash) throw new Error('Provided function and arguments do not match proposal hash');
@@ -200,6 +200,7 @@ module.exports = class ExeDAO extends Contract {
   getApplication(address) {
     return this.call('getApplication', address)
       .then((application) => {
+        if (application.applicant == '0x0000000000000000000000000000000000000000') return null;
         application.tokenTributes = application.tokenTributes.map(
           (tokenAddress, i) => ({tokenAddress, value: application.tokenTributeValues[i]}));
         application.proposalHash = this.hashProposal('executeApplication', application.applicant);
@@ -210,12 +211,13 @@ module.exports = class ExeDAO extends Contract {
   getOpenApplications() {
     return this.call('getOpenApplications')
       .then((applications) => {
+        if (!applications) return null;
         for (let application of applications) {
           application.proposalHash = this.hashProposal('executeApplication', application.applicant);
           application.tokenTributes = application.tokenTributes.map(
             (tokenAddress, i) => ({tokenAddress, value: application.tokenTributeValues[i]}));
         }
-        return applications
+        return applications.filter(app => app.shares != '0')
       });
   }
 

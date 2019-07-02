@@ -30,6 +30,8 @@ module.exports = class API {
     }
   }
 
+  toCid(hash) { return toCid(hash) }
+
   get token() { return this._token; }
 
   set token(token) {

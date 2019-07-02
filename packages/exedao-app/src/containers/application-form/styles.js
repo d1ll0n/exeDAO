@@ -6,7 +6,7 @@ const styles = (theme) => ({
         margin: 10,
         width: '50%',
         marginLeft: '20%',
-        height: 700,
+        height: 750,
         padding: 50
     },
     body: {

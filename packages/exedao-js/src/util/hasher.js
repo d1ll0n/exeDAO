@@ -1,6 +1,7 @@
 const multihashes = require('multihashes');
 const CID = require('cids');
 const {digest} = require('multihashing')
+const detJson = require('./deterministicJSON');
 
 /**
  * @dev the hash slinging slasher
@@ -15,7 +16,7 @@ class Hasher {
   sha3Bytes(value) { return this.soliditySha3({ t: 'bytes', v: value }) }
 
   jsonSha3(obj) {
-    const json = JSON.stringify(obj);
+    const json = detJson(obj);
     const buf = Buffer.from(json)
     return '0x' + digest(buf, 'sha3-256').toString('hex')
     // return this.sha3(Buffer.from(json))

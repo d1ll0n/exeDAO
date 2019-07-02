@@ -5,6 +5,7 @@ import "../lib/Proposals.sol";
 import "./IBaseDAO.sol";
 
 contract IPermissioned is IBaseDAO {
+  function transferEther(address payable recipient, uint256 weiToSend) external;
   function getApprovalRequirement(bytes4 funcSig) external view returns (uint8 requirement);
   function getApprovalRequirements(bytes4[] calldata funcSigs) external view returns (uint8[] memory requirements);
   function getOpenProposals() external view returns (Proposals.ProposalOutput[] memory proposals);

@@ -51,7 +51,8 @@ class ProposalForm extends Component {
     title: '',
     description: '',
     includeMeta: true,
-    membersOnly: false
+    membersOnly: false,
+    showEditor: false
   }
 
   /* componentWillReceiveProps = ({abi}) => {
@@ -63,19 +64,21 @@ class ProposalForm extends Component {
 
   setActiveFunction = ({target: {value: sig}}) => this.setState({ activeFunction: sig });
 
-  handleSubmit = async (values) => {
+  handleSubmit = async (values, extraMeta = {}) => {
     const {activeFunction, title, description, includeMeta, membersOnly} = this.state;
     const {functions, exedao} = this.props;
-    const {abi: {inputs}, signature} = functions[activeFunction]
+    const {abi: {name, inputs}, signature} = functions[activeFunction]
     const proposalData = {
       function: signature,
       arguments: inputs.reduce((arr, input) => [...arr, values[input.name]], []),
       title: includeMeta && title,
-      description: includeMeta && description
+      description: includeMeta && description,
+      ...extraMeta
     }
     console.log(`submitting proposal`)
     console.log(proposalData)
-    await submitProposal(exedao, proposalData, membersOnly)
+    const gas = (name == 'safeExecute') ? 500000 : 250000
+    await submitProposal(exedao, proposalData, membersOnly, gas)
     this.props.goProp()
   }
 
@@ -140,7 +143,7 @@ class ProposalForm extends Component {
             <TextField style={{ width: '100%' }} onChange={this.handleChangeTitle} value={title} label='Proposal Title' />
           </Grid>
           <Grid item style={{ width: '50%' }}>
-            <TextField style={{ width: '100%' }} onChange={this.handleChangeDescription} value={description} label='Proposal Description' multiline />
+            <TextField style={{ width: '100%' }} onChange={this.handleChangeDescription} value={description} label='Proposal Description' multiline rows='6' />
           </Grid>
         </Grid>
       }

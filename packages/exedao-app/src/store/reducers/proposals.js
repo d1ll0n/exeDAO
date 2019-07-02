@@ -1,4 +1,4 @@
-import {updateItem} from './util';
+import {updateItem, updateItems} from './util';
 
 export const ADD_PROPOSAL = 'PROPOSALS/ADD_PROPOSAL';
 export const ADD_PROPOSALS = 'PROPOSALS/ADD_PROPOSALS';
@@ -17,7 +17,8 @@ export default (state = initialState, action) => {
       return {proposals: [...state.proposals, proposal]}
 
     case ADD_PROPOSALS:
-      return {proposals: [...state.proposals, ...proposals]}
+      console.log(updateItems([...state.proposals], [...proposals], 'proposalHash'))
+      return {proposals: updateItems([...state.proposals], [...proposals], 'proposalHash')}
 
     case SET_PROPOSAL_DETAILS:
       return {proposals: updateItem(state.proposals, proposal, 'proposalHash')}

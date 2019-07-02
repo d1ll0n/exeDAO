@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { push } from 'connected-react-router';
 import {acceptApplication} from '../../actions/applications'
+import {requestWeb3} from '../../actions/web3'
 
 import {
   Card, CardActions, CardContent, Grid,
@@ -10,14 +11,9 @@ import {
   ListSubheader, Divider, withStyles, Dialog, DialogContent, DialogActions
 } from '@material-ui/core/';
 
-import {getOpenApplications} from '../../actions/applications'
+import {getOpenApplications, getApplicationDetails} from '../../actions/applications'
 import styles from './styles';
 import ApplicationDetail from '../../components/application-detail';
-
-const details = {
-  name: "Cool name",
-  description: "Cooler description"
-};
 
 class ApplicationsPage extends Component {
   state = { open: false, selectedApplication: {}, loaded: false };
@@ -33,17 +29,20 @@ class ApplicationsPage extends Component {
   componentDidMount = () => this.loadApplications()
 
   handleGetDetails = (i) => {
+    const {applicant, metaHash} = this.props.applications[i];
+    this.props.getApplicationDetails(applicant, metaHash);
     this.setState({ open: !this.state.open, selectedApplication: this.props.applications[i] });
-    console.log("implement getRequestMetaData!");
   };
 
-  handleToggle = () => {
-    this.setState({ open: false });
-  };
+  handleToggle = () => this.setState({ open: false });
+
+  handleAcceptApplication = (applicant) => {
+    this.props.acceptApplication(applicant);
+    this.handleToggle()
+  }
 
   renderApplicationDetail = () => {
-    const { applicant, shares, weiTribute, tokenTributes, proposalHash } = this.state.selectedApplication;
-    const { name, description } = details;
+    const { applicant, shares, weiTribute, tokenTributes, proposalHash, name, description } = this.state.selectedApplication;
     const { isDaoist } = this.props;
     return (
       <React.Fragment>
@@ -64,7 +63,7 @@ class ApplicationsPage extends Component {
             </DialogContent>
             <DialogActions style={{justifyContent: 'center'}}>
               {
-                isDaoist && <Button onClick = { () => this.props.acceptApplication(applicant) } color="primary" >
+                isDaoist && <Button onClick = { () => this.handleAcceptApplication(applicant) } color="primary" >
                   Vote To Accept
                 </Button>
               }
@@ -80,7 +79,8 @@ class ApplicationsPage extends Component {
 
   renderTokenTributes = (tokenTributes) => {
     const { classes } = this.props;
-    return ( 
+    return (
+      tokenTributes &&
       tokenTributes.length > 0 && 
         <List 
           subheader = { 
@@ -106,6 +106,7 @@ class ApplicationsPage extends Component {
 
   renderApplications = () => {
     const { classes, applications } = this.props;
+    console.log(applications)
     if (applications.length > 0) return <Grid container alignItems='flex-start' direction='row' justify='space-between'>
       { applications.map(({ applicant, shares, tokenTributes, weiTribute }, i) =>
         <Grid item key = { i } className = { classes.request }>
@@ -114,7 +115,7 @@ class ApplicationsPage extends Component {
               <Typography variant="title" gutterBottom>
                 Applicant 
               </Typography>
-              <Typography variant="subheading" gutterBottom>
+              <Typography variant="caption" gutterBottom>
                 { applicant }
               </Typography>
               <Typography variant='h6' gutterBottom>
@@ -140,6 +141,21 @@ class ApplicationsPage extends Component {
     </Grid>
     return <Typography variant='h3' style={{width: '100%', textAlign: 'center'}}>No open applications.</Typography>
   }
+
+  renderLoginLink = () => <Button
+    color='primary'
+    variant="contained"
+    size='large'
+    onClick={() => this.props.requestWeb3()}
+  >
+    Enable Web3
+  </Button>
+
+  renderButton = () => {
+    const { classes, isDaoist, loggedIn } = this.props;
+    if (!loggedIn) return this.renderLoginLink();
+    if (!isDaoist) return <Button variant="contained" color='primary' size='large' onClick={this.props.goForm}>Create Application</Button>
+  }
   
   render() {
     const { classes } = this.props;
@@ -148,7 +164,7 @@ class ApplicationsPage extends Component {
     return (
       <Grid container spacing = { 8 } direction = "column" alignItems = "center" className = { classes.base }>
         <Grid item>
-          <Button variant="contained" color='primary' size='large' onClick = {this.props.goForm}> Create Application </Button>
+          {this.renderButton()}
         </Grid>
         <Grid item>
           { this.renderApplications() }
@@ -163,9 +179,10 @@ const mapStateToProps = ({ web3, applications, exedao }) => ({
   account: web3.accounts[0],
   loading: web3.loading,
   isDaoist: exedao.exedao && exedao.exedao.ownedShares > 0,
-  loaded: web3.loaded,
+  loggedIn: web3.loggedIn,
   proposals: exedao.exedao && exedao.exedao.proposals,
-  applications: (exedao.exedao && exedao.exedao.applications) || []
+  requestWeb3,
+  applications: applications.applications
 });
 
 const mapDispatchToProps = (dispatch) =>
@@ -174,6 +191,7 @@ const mapDispatchToProps = (dispatch) =>
       acceptApplication,
       goForm: () => push('/application-form'),
       getOpenApplications,
+      getApplicationDetails
     },
     dispatch,
   );

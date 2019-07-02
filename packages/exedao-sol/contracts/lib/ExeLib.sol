@@ -42,21 +42,17 @@ library ExeLib {
   function delegateExecute(bytes memory bytecode) internal {
     uint256 size = bytecode.length;
     assembly {
+      let retptr := mload(0x40)
       let start := add(bytecode, 0x20)
       let delegateTo := create(0, start, size)
-      let retptr := mload(0x40)
-      let delegateSuccess := delegatecall(gas, delegateTo, 0, 0, retptr, 0)
-      let retsize := returndatasize
-      returndatacopy(retptr, 0, returndatasize)
-      if iszero(delegateSuccess) { revert(retptr, returndatasize) }
-      let freeptr := add(retptr, retsize)
-      mstore(freeptr, 0x41c0e1b500000000000000000000000000000000000000000000000000000000)
-      let selfdestructSuccess := call(gas, delegateTo, 0, freeptr, 0x20, freeptr, 0)
-      if iszero(selfdestructSuccess) {
+      if iszero(delegateTo) {
         returndatacopy(retptr, 0, returndatasize)
         revert(retptr, returndatasize)
       }
-      return(retptr, retsize)
+      let delegateSuccess := delegatecall(gas, delegateTo, 0, 0, retptr, 0)
+      returndatacopy(retptr, 0, returndatasize)
+      if iszero(delegateSuccess) { revert(retptr, returndatasize) }
+      return (retptr, returndatasize)
     }
   }
 

@@ -29,7 +29,10 @@ module.exports = class Compiler {
       }
     };
     let solc = this.solc;
-    if (version !== this.solc.version()) solc = await this.loadVersion(version);
+    let semiver = this.solc.version().replace('.Emscripten.clang', '');
+    if (semiver[0] == 'v') semiver = semiver.slice(1);
+    console.log(semiver)
+    if (version.slice(1) !== semiver) solc = await this.loadVersion(version);
     const out = JSON.parse(solc.compile(JSON.stringify(input)));
     if (out.errors && out.errors.length && out.errors.some(err => err.severity != 'warning')) {
       const toThrow = new Error('solc error, see "errors" property');

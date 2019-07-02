@@ -63,6 +63,10 @@ contract Permissioned is IPermissioned, BaseDAO, PermissionedStorage {
     if (_voteAndContinue()) _receiveToken(tokenAddress, sender, amount);
   }
 
+  function transferEther(address payable recipient, uint256 weiToSend) external {
+    if (_voteAndContinue()) recipient.transfer(weiToSend);
+  }
+
   /**
    * @dev Set the requirement for execution of a function.
    * @param funcSig The signature of the function which approval is being set for.

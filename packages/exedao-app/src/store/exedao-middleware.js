@@ -50,8 +50,8 @@ export default function createExedaoMiddleware() {
     
     exedao.addListener(
       'ApplicationAdded',
-      ({applicant}) => {
-        const application = exedao.getApplication(applicant);
+      async ({applicant}) => {
+        const application = await exedao.getApplication(applicant);
         dispatch({type: ADD_APPLICATION, application})
       }
     )

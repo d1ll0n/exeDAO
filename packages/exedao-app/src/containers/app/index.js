@@ -13,6 +13,8 @@ import ProposalForm from '../proposal-form';
 import ProposalsPage from '../proposals-page';
 import ApplicationForm from '../application-form'
 import ApplicationsPage from '../applications-page';
+import SolInput from '../../components/script-form'
+
 
 class App extends Component {
   componentDidMount = () => {

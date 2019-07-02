@@ -24,12 +24,9 @@ class Navbar extends Component {
 
   handleChangeTab = (_, index) => {
     console.log('change tab ', index)
-    const { activeIndex, tabs } = this.state;
-    if (index !== activeIndex) {
-      this.setState({ activeIndex: index });
-      const { path } = tabs[index];
-      this.props.goToPage(path);
-    }
+    const { tabs } = this.state;
+    this.setState({ activeIndex: index });
+    if (tabs[index]) this.props.goToPage(tabs[index].path);
   };
 
   render() {
