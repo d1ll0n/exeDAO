@@ -29,6 +29,23 @@ const compile = (entryFile, src, returnAll, otherSources) => {
       }
     }
   }), findImports));
+  const {sources} = out;
+  const standardInput = {
+    language: 'Solidity',
+    settings: {
+      outputSelection: {
+        "*": {
+          "*": ["abi", "evm.bytecode", "evm.deployedBytecode"]
+        }
+      },
+      optimizer: {
+        enabled: true,
+        runs: 200
+      }
+    },
+    sources
+  };
+  fs.writeFileSync('standard-input.json', JSON.stringify(standardInput, null, 2))
   if (out.errors && out.errors.length && out.errors.some(err => err.severity != 'warning')) {
     const toThrow = new Error('solc error, see "errors" property');
     toThrow.errors = out.errors;

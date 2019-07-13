@@ -1,0 +1,74 @@
+{
+  "language": "Solidity",
+  "settings": {
+    "outputSelection": {
+      "*": {
+        "*": [
+          "abi",
+          "evm.bytecode",
+          "evm.deployedBytecode"
+        ]
+      }
+    },
+    "optimizer": {
+      "enabled": true,
+      "runs": 200
+    }
+  },
+  "sources": {
+    "BaseDAO.sol": {
+      "id": 0
+    },
+    "ExeDAO.sol": {
+      "id": 1
+    },
+    "Extendable.sol": {
+      "id": 2
+    },
+    "Permissioned.sol": {
+      "id": 3
+    },
+    "interfaces/IBaseDAO.sol": {
+      "id": 4
+    },
+    "interfaces/IExeDAO.sol": {
+      "id": 5
+    },
+    "interfaces/IExtendable.sol": {
+      "id": 6
+    },
+    "interfaces/IPermissioned.sol": {
+      "id": 7
+    },
+    "lib/DaoLib.sol": {
+      "id": 8
+    },
+    "lib/ExeLib.sol": {
+      "id": 9
+    },
+    "lib/IERC20.sol": {
+      "id": 10
+    },
+    "lib/Indices.sol": {
+      "id": 11
+    },
+    "lib/Proposals.sol": {
+      "id": 12
+    },
+    "lib/SafeMath.sol": {
+      "id": 13
+    },
+    "storage/BaseDAOStorage.sol": {
+      "id": 14
+    },
+    "storage/ExeDAOStorage.sol": {
+      "id": 15
+    },
+    "storage/ExtendableStorage.sol": {
+      "id": 16
+    },
+    "storage/PermissionedStorage.sol": {
+      "id": 17
+    }
+  }
+}
