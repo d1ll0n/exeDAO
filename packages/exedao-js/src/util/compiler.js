@@ -3,8 +3,8 @@ const wrapper = require('./solc/wrapper');
 module.exports = class Compiler {
   constructor(solc) {
     if (solc) this.solc = solc;
-    else if (!(window && window.Module)) throw new Error('Must provide solc if not used in browser');
-    else this.solc = wrapper(window.Module);
+    else if (typeof window != 'undefined') this.solc = wrapper(window.Module);
+    // else this.solc = require('solc') //throw new Error('Must provide solc if not used in browser');
   }
 
   loadVersion(version) {
@@ -42,6 +42,6 @@ module.exports = class Compiler {
     const {
       abi, evm: { bytecode: { object: bytecode } }
     } = out.contracts[contractName + '.sol'][contractName];
-    return {abi, bytecode};
+    return {abi, bytecode: '0x' + bytecode};
   }
 }

@@ -17,7 +17,16 @@ contract PermissionedStorage {
   mapping(bytes32 => Indices.Index) internal _proposalIndices;
   mapping(bytes4 => uint8) internal _approvalRequirements;
   mapping(bytes32 => bytes32) internal _proposalMetaHashes;
-  // mapping(address => mapping(uint256 => bool)) internal _offlineNonces;
+  mapping(address => mapping(uint256 => bool)) internal _nonces;
+
+  function nextNonce(address daoist) external view returns (uint256 nonce) {
+    nonce = 0;
+    while(true) {
+      if (!_nonces[daoist][nonce]) break;
+      else nonce += 1;
+    }
+    return nonce;
+  }
 
   function getApprovalRequirement(bytes4 funcSig) external view returns (uint8 requirement) {
     requirement = _approvalRequirements[funcSig];

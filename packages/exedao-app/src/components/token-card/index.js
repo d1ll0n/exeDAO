@@ -24,15 +24,26 @@ function TokenCard({token, classes}) {
                 }
             </Grid>
             <Grid item md={9}>
-                <Typography variant = "subtitle1">
-                    {token.name || `${token.tokenAddress.slice(0, 12)}...`}
+                {
+                    token.name
+                    && <Typography variant = "subtitle1"> {token.name} </Typography>
+                }
+                
+                <Typography variant = "caption">
+                    {token.tokenAddress}
                 </Typography>
             </Grid>
         </Grid>
         <Grid container justify='center' className={classes.tokenPrice}>
             <Typography variant='subtitle1'>
-                {token.value} {token.symbol} {token.price && `(♦ ${token.price})`}
+                {token.value} {token.symbol} {token.price && `(♦ ${token.price*token.value})`}
             </Typography>
+            {
+                token.price && <Typography variant='subtitle1'>
+                Price: ♦{token.price}
+                </Typography>
+            }
+            
         </Grid>
     </Card>
     );

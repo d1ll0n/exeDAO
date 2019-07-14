@@ -33,7 +33,7 @@ describe('exeDAO class', () => {
   })
 
   it('Should mint shares', async () => {
-    await exedao.mintShares(accounts[1], 1000, 200000);
+    await exedao.mintShares(accounts[1], 400, 200000);
     const shares = await exedao.getShares(accounts[1]);
     expect(shares).to.eq('1000')
   })
@@ -105,5 +105,68 @@ describe('exeDAO class', () => {
     exedao.add = (gas, value, ...args) => exedao.sendProposal('add', gas, value, ...args);
     const receipt = await exedao.add(1000000, 0, 5, 10)
     expect(parseInt(receipt.logs[1].data, 16)).to.eql(15)
+  })
+
+  it ('Should run safeExecute', async () => {
+    const testSol = `pragma solidity 0.5.0;
+    contract ExecuteAdd {
+      event Added(uint c);
+    
+      function () external payable {
+        emit Added(5);
+      }
+    }`;
+    const compilerOptions = {
+      settings: {
+          optimizer: {
+              enabled: true,
+              runs: 200
+          }
+      },
+      contractName: 'ExecuteAdd',
+      sources: {
+          'ExecuteAdd.sol': {
+              content: testSol
+          }
+      },
+      version: 'v0.5.0+commit.1d4f565a'
+    };
+    const {bytecode} = await exedao.compiler.compile(compilerOptions)
+    const receipt = await exedao.safeExecute(bytecode, 300000)
+    expect(parseInt(receipt.logs[1].data, 16)).to.eql(5)
+    
+  })
+
+  it('Should run safeExecute after voteByHash', async () => {
+    const testSol = `pragma solidity 0.5.0;
+    contract ExecuteAdd {
+      event Added(uint c);
+    
+      function () external payable {
+        emit Added(5);
+      }
+    }`;
+    const compilerOptions = {
+      settings: {
+          optimizer: {
+              enabled: true,
+              runs: 200
+          }
+      },
+      contractName: 'ExecuteAdd',
+      sources: {
+          'ExecuteAdd.sol': {
+              content: testSol
+          }
+      },
+      version: 'v0.5.0+commit.1d4f565a'
+    };
+    const {bytecode} = await exedao.compiler.compile(compilerOptions)
+    const propHash = exedao.hashProposal('safeExecute', bytecode);
+    console.log(propHash)
+    let receipt = await exedao.submitOrVote(propHash, 300000)
+    receipt = await exedao.safeExecute(bytecode, 300000)
+    console.log(receipt.events)
+    expect(parseInt(receipt.logs[1].data, 16)).to.eql(5)
   })
 })

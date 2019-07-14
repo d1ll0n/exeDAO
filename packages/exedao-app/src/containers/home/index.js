@@ -8,13 +8,15 @@ import Grid from '@material-ui/core/Grid'
 import Card from '@material-ui/core/Card'
 import Button from '@material-ui/core/Button'
 import { withStyles } from '@material-ui/core/styles';
-import ExedaoLogo from './exedao-logo.png'
+import ExedaoLogo from './exedao-logo.svg'
 import styles from './styles';
 import TokenCard from '../../components/token-card'
+import BurnModal from '../../components/burn-modal'
 
-const totalValue = (ether, tokens) => tokens.reduce((value, token) => parseInt(value) + (token.price || 0) * token.value, ether/1e18);
+const totalValue = (ether, tokens) => tokens.reduce((value, token) => value + (token.price || 0) * token.value, ether/1e18);
 
 class Home extends Component {
+	state = {showBurn: false}
 	renderApplyButton = () => <Button
 		variant='contained' color='primary'
 		size='large' onClick={this.props.goToForm}
@@ -24,16 +26,19 @@ class Home extends Component {
 
 	renderBurnButton = () => <Button
 		variant='contained' color='secondary'
-		size='large' onClick={this.props.goToForm}
+		size='large' onClick={this.toggleShowBurn}
 	>
 		Burn Shares
 	</Button>
+
+	toggleShowBurn = () => this.setState({showBurn: !this.state.showBurn})
 
 	renderOverview = () => {
 		const {classes, balance, totalShares, daoists, tokens, applications, proposals, exedaoAddress, isDaoist, ownedShares} = this.props;
 		const totalEth = totalValue(balance, tokens);
 		return (
 			<Card className={classes.overview}>
+				{<BurnModal onClose={this.toggleShowBurn} open={this.state.showBurn} />}
 					<Grid
 						container direction="column"
 						justify='center' alignItems='center'
