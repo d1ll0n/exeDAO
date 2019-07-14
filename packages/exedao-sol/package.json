@@ -4,8 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "mocha ./test --timeout 10000",
-    "prepare": "lerna run --stream --sort prepare"
+    "test": "mocha ./test --timeout 10000"
   },
   "repository": {
     "type": "git",
