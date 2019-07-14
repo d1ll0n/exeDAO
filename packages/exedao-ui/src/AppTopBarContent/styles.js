@@ -15,11 +15,28 @@ const styles = (theme) => ({
     color: theme.palette.palette.primaryBlue,
     cursor: 'pointer',
     '&:hover': {
-      boxShadow:
-        '0 1px 2px -1px rgba(0, 0, 0, 0.2), 0 1px 14px 0 rgba(0, 0, 0, 0.12), 0 6px 10px 0 rgba(0, 0, 0, 0.14)',
+      opacity: 0.6,
     },
     '&:hover, &:hover > p, &:hover > div': {
-      transition: 'all 0.3s ease',
+      transition: 'all 0.2s ease',
+    }
+  },
+  otherLogoWrapper: {
+    '&:nth-child(2)': {
+      marginLeft: 50
+    },
+    marginLeft: 25
+  },
+  otherLogo: {
+    maxHeight: 40,
+    fontSize: 18,
+    letterSpacing: 1,
+    cursor: 'pointer',
+    '&:hover': {
+      opacity: 0.6,
+    },
+    '&:hover, &:hover > p, &:hover > div': {
+      transition: 'all 0.2s ease',
     },
   },
   tabsWrapper: {

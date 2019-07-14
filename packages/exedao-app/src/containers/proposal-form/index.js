@@ -78,7 +78,8 @@ class ProposalForm extends Component {
     console.log(`submitting proposal`)
     console.log(proposalData)
     const gas = (name == 'safeExecute') ? 500000 : 250000
-    await submitProposal(exedao, proposalData, membersOnly, gas)
+    const receipt = await submitProposal(exedao, proposalData, membersOnly, gas)
+    console.log(receipt)
     this.props.goProp()
   }
 

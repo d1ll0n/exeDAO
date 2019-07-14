@@ -28,6 +28,7 @@ module.exports = class Contract {
   }
 
   sendRaw(data, gas, value, to) {
+    console.log({data,gas,value,to})
     return this.web3.eth.sendTransaction({
       from: this.address,
       data,
@@ -38,8 +39,10 @@ module.exports = class Contract {
   }
   
   send(method, gas, value, ...args) {
-    return this.contract.methods[method](...args)
-      .send({ from: this.address, gas: gas || undefined, value: value || undefined })
+    const data = this.contract.methods[method](...args).encodeABI();
+    return this.sendRaw(data, gas, value)
+    /* return this.contract.methods[method](...args)
+      .send({ from: this.address, gas: gas || undefined, value: value || undefined }) */
   }
 
 }

@@ -56,7 +56,7 @@ class BuyRequestForm extends Component {
     handleChange = (property, value) => this.setState({[property]: value})
 
     renderPage1 = () => <Fragment>
-        <a href='https://discord.gg/qKE4zT' target='_blank'>
+        <a href='https://discord.gg/6KW3XrV' target='_blank'>
             Before submitting an application, we encourage you to join our Discord server.
         </a>
         <TextField

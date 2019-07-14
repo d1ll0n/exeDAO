@@ -7,6 +7,7 @@ const Compiler = require('./util/compiler');
 const API = require('./util/api');
 const {functionDescriptions} = require('./defaults');
 const {getTokenInfo, getTokensInfo} = require('./get-token-info')
+const TokenGetter = require('./util/TokenGetter')
 
 module.exports = class ExeDAO extends Contract {
   constructor(web3, userAddress, contract, apiUrl, rpcUrl) {
@@ -15,7 +16,8 @@ module.exports = class ExeDAO extends Contract {
     this.api = new API(web3, userAddress, apiUrl);
     this.approvalRequirements = {};
     this.functionDescriptions = functionDescriptions;
-    this.rpcUrl = rpcUrl || 'https://mainnet.infura.io/v3/694db1a88f814a29927305f7b98cf7a3';
+    this.rpcUrl = rpcUrl || 'https://mainnet.infura.io/v3';
+    this.tokenGetter = new TokenGetter(this.web3);
   }
 
   static async deploy(web3, address, options) {
@@ -35,7 +37,7 @@ module.exports = class ExeDAO extends Contract {
     await this.updateRequirements();
     this.totalShares = await this.getTotalShares();
     this.ownedShares = this.address ? await this.getShares(this.address).catch(() => 0) : 0;
-    this.tokens = await this.getTokens();
+    this.tokens = await this.getTokensWithInfo() //this.getTokens();
     this.balance = await this.web3.eth.getBalance(this.contract._address);
     this.daoists = await this.getDaoists();
   }
@@ -92,6 +94,7 @@ module.exports = class ExeDAO extends Contract {
   /* <UTILS> */
   hashProposal(method, ...args) {
     const data = this.contract.methods[method](...args).encodeABI();
+    console.log({hashData: data})
     return this.hasher.sha3Bytes(data);
   }
   /* </UTILS> */
@@ -101,8 +104,6 @@ module.exports = class ExeDAO extends Contract {
     const hash = this.hasher.jsonSha3(obj);
     const valid = hash == expectHash;
     if (!valid) {
-      console.log(typeof obj)
-      console.log(obj)
       console.log('real hash - ', hash)
       console.log('expected hash - ', expectHash)
     }
@@ -110,7 +111,6 @@ module.exports = class ExeDAO extends Contract {
   }
 
   async verifyProposalMeta(proposalHash, metadata, extMeta) {
-    console.log(typeof metadata)
     // verify calldata
     const calldataHash = this.hashProposal(metadata.function, ...metadata.arguments);
     if (calldataHash != proposalHash) throw new Error('Provided function and arguments do not match proposal hash');
@@ -162,8 +162,8 @@ module.exports = class ExeDAO extends Contract {
   /* </VERIFIERS> */
 
   /* <SCRAPER> */
-  getTokenInfo(address) { return getTokenInfo(this.rpcUrl, address); }
-  getTokensInfo(addresses) { return getTokensInfo(this.rpcUrl, addresses); }
+  getTokenInfo(address) { return this.tokenGetter.getTokenInfo(address) }
+  getTokensInfo(addresses) { return addresses.map(async address => await this.getTokenInfo(address)) }
   /* </SCRAPER> */
 
   /* <GETTERS> */
@@ -172,19 +172,15 @@ module.exports = class ExeDAO extends Contract {
 
   getToken(address) { return this.call('getToken', address); }
   getTokens() { return this.call('getTokens'); }
+
   async getTokensWithInfo() {
-    const tokens = await this.getTokens();
-    const tokenInfo = await this.getTokensInfo(tokens.map(token => token.tokenAddress));
-    for (let info of tokenInfo) {
-      let token = tokens.filter(token => token.tokenAddress == tokenInfo.address)
-      if (token.length) token = token[0];
-      else continue;
-      token.name = info.name;
-      token.symbol = info.symbol;
-      token.price = info.ethPrice;
-      token.logo = info.image;
-    }
-    return tokens;
+    return await this.getTokens()
+      .then(tokens => Promise.all(tokens.map(
+        async (token) => {
+          const info = await this.getTokenInfo(token.tokenAddress);
+          return {...token, ...info}
+        }
+      )));
   }
 
   getShares(address) { return this.call('getDaoist', address).then(daoist => daoist.shares); }
@@ -262,16 +258,16 @@ module.exports = class ExeDAO extends Contract {
     const totalShares = await this.getTotalShares();
     const remainder = votesNeeded(requirement, totalShares, votes);
     const shares = await this.getShares(this.address);
-    console.log(`Sending proposal ${method} ${args}`)
+    // console.log(`Sending proposal ${method} ${args}`)
     if (shares >= remainder) {
-      console.log(`Sending raw ${data}`)
+      // console.log(`Sending raw ${data}`)
       const receipt = await this.sendRaw(data, gas, value);
-      console.log(receipt)
+      // console.log(receipt)
       return receipt;
     }
-    console.log(`Sending vote by hash`)
+    // console.log(`Sending vote by hash`)
     const receipt = await this.submitOrVote(proposalHash, gas);
-    console.log(receipt);
+    // console.log(receipt);
     return receipt;
   }
 
@@ -281,6 +277,7 @@ module.exports = class ExeDAO extends Contract {
   /* </PROPOSAL UTILS> */
 
   /* <DAO MANAGEMENT PROPOSALS> */
+  burnShares(shares, gas) { return this.send('burnShares', gas, 0, shares); }
   setMinimumTribute(minValue, gas) { return this.sendProposal('setMinimumRequestValue', gas, 0, minValue); }
   setApprovalRequirement(sig, req, gas) { return this.sendProposal('setApprovalRequirement', gas, 0, sig, req); }
   mintShares(address, shares, gas) { return this.sendProposal('mintShares', gas, 0, address, shares); }

@@ -6,14 +6,18 @@ import {
   EXEDAO_ADD_TOKENS,
   EXEDAO_SET,
 } from './reducers/exedao';
-import {ADD_APPLICATION, ADD_APPLICATIONS} from './reducers/applications';
+import {
+  ADD_APPLICATION,
+  ADD_APPLICATIONS,
+  REMOVE_APPLICATION
+} from './reducers/applications';
 import {
   ADD_PROPOSAL,
+  REMOVE_PROPOSAL,
   ADD_PROPOSALS,
   SET_PROPOSAL_DETAILS,
   ADD_VOTES,
 } from './reducers/proposals';
-import { dispatch } from 'rxjs/internal/observable/pairs';
 
 /* 
 function execute(action, next, dispatch) {
@@ -24,6 +28,8 @@ function execute(action, next, dispatch) {
   }
 }
 */
+const getUrl = window.location;
+const baseUrl = getUrl .protocol + "//" + getUrl.host + "/" + getUrl.pathname.split('/')[1];
 
 export default function createExedaoMiddleware() {
   const exeDAOAddress = process.env.REACT_APP_CONTRACT_ADDRESS;
@@ -42,6 +48,16 @@ export default function createExedaoMiddleware() {
       'ProposalSubmission',
       async ({proposalHash}) =>
         dispatch({type: ADD_PROPOSAL, proposal: await exedao.getProposal(proposalHash)}))
+    
+    exedao.addListener(
+      'ProposalApproval',
+      async ({proposalHash}) =>
+        dispatch({type: REMOVE_PROPOSAL, proposal: {proposalHash}}))
+    
+    exedao.addListener(
+      'ProposalExpiration',
+      async ({proposalHash}) =>
+        dispatch({type: REMOVE_PROPOSAL, proposal: {proposalHash}}))
 
     exedao.addListener(
       'ProposalVote',
@@ -50,19 +66,18 @@ export default function createExedaoMiddleware() {
     
     exedao.addListener(
       'ApplicationAdded',
-      async ({applicant}) => {
-        const application = await exedao.getApplication(applicant);
-        dispatch({type: ADD_APPLICATION, application})
-      }
-    )
+      async ({applicant}) =>
+        dispatch({type: ADD_APPLICATION, application: await exedao.getApplication(applicant)}))
+    
+    exedao.addListener(
+      'ApplicationCanceled',
+      async ({applicant}) =>
+        dispatch({type: REMOVE_APPLICATION, application: {applicant}}))
 
     exedao.addListener(
       'TokenAdded',
-      ({tokenAddress}) => {
-        console.log(`TOKEN ADDED - ${tokenAddress}`)
-        dispatch({type: EXEDAO_ADD_TOKEN, token: {tokenAddress}})
-      }
-    )
+      ({tokenAddress}) =>
+        dispatch({type: EXEDAO_ADD_TOKEN, token: {tokenAddress}}))
   }
 
   async function apiLogin(exedao) {
@@ -73,7 +88,7 @@ export default function createExedaoMiddleware() {
     return next => (action) => {
       const {web3, accounts, loggedIn, type} = action;
       if (type == WEB3_SET) {
-        const exedao = new ExeDAO(web3, accounts[0], exeDAOAddress);
+        const exedao = new ExeDAO(web3, accounts[0], exeDAOAddress, baseUrl);
         setExedao(exedao, dispatch)
           .then(() => loggedIn && apiLogin(exedao))
       }

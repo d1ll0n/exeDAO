@@ -30,8 +30,7 @@ contract ExeDAO is IExeDAO, Extendable, ExeDAOStorage {
     require(!_daoistIndices[msg.sender].exists, "ExeDAO: Already a daoist");
     Indices.Index memory index = _applicationIndices[msg.sender];
     require(!index.exists, "ExeDAO: Application pending");
-    require(shares > 0, "ExeDAO: Can not apply for 0 shares");
-    require(msg.value >= _minimumTribute, "ExeDAO: Insufficient wei tribute for application");
+    require(shares > 0 && msg.value >= _minimumTribute, "ExeDAO: Bad application");
     uint256 tokenCount = tokenTributes.length;
     address[] memory lockedTokens = new address[](tokenCount);
     uint256[] memory lockedTokenValues = new uint256[](tokenCount);

@@ -40,7 +40,7 @@ class ProposalDetailContainer extends Component {
 	
 	renderHeader = () => {
 		const {proposal} = this.props;
-		const {proposalIndex, title, description} = proposal;
+		const {proposalIndex, title, description, metaHash, metaHashCid} = proposal;
 		return (
 			<Fragment>
 				<Typography variant="h5" style={{ paddingTop: 15, paddingLeft: 40}}>Proposal #{proposalIndex}</Typography>
@@ -52,6 +52,12 @@ class ProposalDetailContainer extends Component {
 					alignItems="flex-start"
 				>
 					{this.renderScriptPreview()}
+					{
+						metaHashCid && <Grid item style={{ marginBottom: 5 }}>
+						<Typography variant='subtitle1'>Meta Hash:</Typography>
+							<a href={`https://gateway.temporal.cloud/ipfs/${metaHashCid}`} target='_blank'><Typography variant="overline">{metaHash}</Typography></a>
+						</Grid>
+					}
 					{
 						title && <Grid item style={{ marginBottom: 5 }}>
 						<Typography variant='subtitle1'>Title:</Typography>
@@ -102,12 +108,12 @@ class ProposalDetailContainer extends Component {
 					style={{ width: '80%' }}
 				>
 					<Grid item>
-						<Typography className={classes.votesLabel}>
+						<Typography className={classes.votesLabel} variant='caption'>
 							{votes} Current votes
 						</Typography>
 					</Grid>
 					<Grid item>
-						<Typography className={classes.votesLabel}>
+						<Typography className={classes.votesLabel} variant='caption'>
 							{votesNeeded} Votes needed
 						</Typography>
 					</Grid>

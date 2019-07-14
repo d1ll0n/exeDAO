@@ -2,21 +2,27 @@ let solc = require('solc')
 const path = require('path')
 const fs = require('fs')
 
-const findImports = (importPath) => ({
-  contents: fs.readFileSync(path.join(__dirname, 'contracts', importPath), 'utf8')
-});
+const findImports = (sourcesObj, importPath) => {
+  const importObj = {
+    contents: fs.readFileSync(path.join(__dirname, 'contracts', importPath), 'utf8')
+  }
+  sourcesObj[importPath] = importObj;
+  return importObj;
+}
 
 const stripFileName = (filePath) => filePath.match(/(\w+\/)*([\w]*).sol/)[2];
 
 const compile = (entryFile, src, returnAll, otherSources) => {
-  const out = JSON.parse(solc.compile(JSON.stringify({
-    language: 'Solidity',
-    sources: {
-      [ entryFile + '.sol' ]: {
-        content: src
-      },
-      ...(otherSources || {})
+  const sources = {
+    [ entryFile + '.sol' ]: {
+      content: src
     },
+    ...(otherSources || {})
+  };
+  
+  const standardInput = {
+    language: 'Solidity',
+    sources,
     settings: {
       outputSelection: {
         "*": {
@@ -27,8 +33,13 @@ const compile = (entryFile, src, returnAll, otherSources) => {
         enabled: true,
         runs: 200
       }
-    }
-  }), findImports));
+    },
+  };
+  const out = JSON.parse(solc.compile(
+    JSON.stringify(standardInput),
+    (importPath) => findImports(sources, importPath)
+  ));
+  fs.writeFileSync('./standard-input.json', JSON.stringify(standardInput, null, 2))
   if (out.errors && out.errors.length && out.errors.some(err => err.severity != 'warning')) {
     const toThrow = new Error('solc error, see "errors" property');
     toThrow.errors = out.errors;
@@ -41,12 +52,8 @@ const compile = (entryFile, src, returnAll, otherSources) => {
     const {
       abi,
       evm: {
-        bytecode: {
-          object: bytecode
-        },
-        deployedBytecode: {
-          object: deployedBytecode
-        }
+        bytecode: { object: bytecode },
+        deployedBytecode: { object: deployedBytecode }
       }
     } = out.contracts[filePath][fileName];
     output[filePath] = {

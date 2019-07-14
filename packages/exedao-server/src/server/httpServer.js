@@ -1,9 +1,11 @@
 const bodyParser = require('body-parser');
 const cors = require('cors')
+const express = require('express')
 const multihashes = require('multihashes');
 const mhA = require('multihashing-async')
 const CID = require('cids');
 const fs = require('fs');
+const compress = require('compression')
 const path = require('path');
 const {putFileSuccess, fileNotFound} = require('../lib/responses');
 const {util} = require('exedao-js')
@@ -23,9 +25,13 @@ const toCid = async (hash) => {
 module.exports = class HttpServer {
   constructor(app, middleware) {
     this.app = app;
+    app.use(compress())
+    app.use(express.static('public'))
+    app.use('/static', express.static(path.join(__dirname, 'public', 'static')))
     app.use(bodyParser.urlencoded({ extended: true }));
     app.use(bodyParser.json());
     app.use(cors())
+    app.get('/', (req, res) => res.sendFile(path.join(__dirname, './public/index.html')))
     app.post('/login', (req, res) => middleware.handleLogin(req, res));
     app.post('/putApplication', (req, res) => this.putApplication(req, res))
     app.use('/dao', (req, res, next) => middleware.checkToken(req, res, next));

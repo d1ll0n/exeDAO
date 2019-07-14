@@ -51,7 +51,7 @@ contract Extendable is IExtendable, Permissioned, ExtendableStorage {
       _extensions.push(extension);
       bytes4[] memory funcSigs = extension.functionSignatures;
       for (uint256 i = 0; i < funcSigs.length; i++) {
-        require(!_extensionFor[funcSigs[i]].exists, "ExeDAO: Approval already set for function");
+        require(!_extensionFor[funcSigs[i]].exists, "ExeDAO: Approval already set");
         _extensionFor[funcSigs[i]] = Indices.Index(true, uint248(index));
       }
       emit ExtensionAdded(index, extension.metaHash);

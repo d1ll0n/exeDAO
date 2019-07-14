@@ -34,11 +34,12 @@ contract BaseDAO is IBaseDAO, BaseDAOStorage {
   function burnShares(uint64 amount) external
   returns(uint256 weiValue, DaoLib.TokenValue[] memory tokenBurnValues) {
     DaoLib.DaoistOutput memory _daoist = getDaoist(msg.sender);
-    require(_daoist.shares >= amount, "Not enough shares");
+    require(_daoist.shares >= amount, "ExeDAO: Not enough shares");
     // use large multiplier to avoid rounding errors
     uint256 relativeShare = _multiplier.mul(amount).div(_totalShares);
     // subtract shares prior to sending anything to prevent reentrance
     _daoists[_daoist.index].shares = uint64(_daoist.shares.sub(amount));
+    _totalShares = uint64(_totalShares.sub(amount));
     uint256 numTokens = _tokens.length;
     tokenBurnValues = new DaoLib.TokenValue[](numTokens);
     uint256 shareValue;
@@ -47,7 +48,7 @@ contract BaseDAO is IBaseDAO, BaseDAOStorage {
       IERC20 token = _tokens[i];
       balance = token.balanceOf(address(this));
       shareValue = relativeShare.mul(balance).div(_multiplier);
-      require(token.transfer(msg.sender, shareValue), "ExeDAO: Transfer failed");
+      token.transfer(msg.sender, shareValue);
       tokenBurnValues[i] = DaoLib.TokenValue(address(token), shareValue);
     }
     weiValue = address(this).balance.mul(relativeShare).div(_multiplier);
@@ -69,7 +70,7 @@ contract BaseDAO is IBaseDAO, BaseDAOStorage {
 
   function _addToken(address tokenAddress) internal {
     Indices.Index memory index = _tokenIndices[tokenAddress];
-    require(!index.exists, "ExeDAO: Token already exists");
+    require(!index.exists, "ExeDAO: Token exists");
     _tokenIndices[tokenAddress] = Indices.Index(true, uint248(_tokens.length));
     _tokens.push(IERC20(tokenAddress));
     emit TokenAdded(tokenAddress);
@@ -90,7 +91,7 @@ contract BaseDAO is IBaseDAO, BaseDAOStorage {
 
   function _receiveToken(address tokenAddress, address sender, uint256 amount) internal {
     IERC20 token = _getToken(tokenAddress);
-    require(token.transferFrom(sender, address(this), amount), "exeDAO: transferFrom failed.");
+    require(token.transferFrom(sender, address(this), amount), "ExeDAO: transferFrom failed.");
     emit TokenReceived(tokenAddress, sender, amount);
   }
 

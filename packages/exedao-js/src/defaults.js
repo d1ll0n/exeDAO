@@ -2,9 +2,10 @@ const { AbiCoder } = require('web3-eth-abi');
 const coder = new AbiCoder();
 
 const defaultFunctions = [
+  ['transferEther(address,uint256)', '66', 'Transfer ether from the contract'],
   ['setMinimumTribute(uint256)', '66', 'Set the minimum wei that must be sent with any request to buy shares.'],
   ['safeExecute(bytes)', '66', 'Execute some bytecode in the context of the dao after checking it for dangerous opcodes.'],
-  ['executeApplication(address)', '51', 'Accept an offer to purchase shares of the dao.'],
+  ['executeApplication(address)', '66', 'Accept an offer to purchase shares of the dao.'],
   ['addExtension((bytes32,address,bool,bytes,bytes4[]))', '75', 'Add an extension for use by the dao.'],
   ['removeExtension(uint256)', '66', 'Remove an extension.'],
   ['mintShares(address,uint64)', '66', 'Create shares for a user.'],
@@ -29,6 +30,15 @@ for (let req of defaultFunctions) {
   requirements.push(req[1]);
   functionDescriptions[signature] = req[2];
 }
+
+/* 
+1000
+30000
+["0xf024a95a","0x345a22cd","0xe033f73c","0x53f45e9c","0xb920ef71","0xdaa08539","0x701c3c28","0x02e4879d","0xd48bfca7","0x52a23bbb","0xf5537ede","0x4ec109f4"]
+["66","66","51","75","66","66","75","66","33","66","66","255"] */
+console.log(JSON.stringify(signatures))
+console.log(JSON.stringify(requirements))
+// console.log(coder.encodeParameters(['uint64', 'uint64', 'bytes4[]', 'uint8[]'], [10000, 50000, signatures, requirements]))
 
 const shares = 1000;
 const duration = 10000;
