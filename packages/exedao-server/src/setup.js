@@ -6,7 +6,7 @@ const Temporal = require('./lib/temporal');
 
 let {contractAddress, ethnet, temporaluser, temporalpass} = process.env;
 const provider = ethnet == 'ganache'
-  ? 'http://localhost:8545' : `wss://${ethnet}.infura.io/ws/v3`;
+  ? 'http://localhost:8545' : new Web3.providers.WebsocketProvider(`wss://${ethnet}.infura.io/ws/v3`);
 
 const web3 = new Web3(provider);
 
