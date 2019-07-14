@@ -28,6 +28,8 @@ function execute(action, next, dispatch) {
   }
 }
 */
+const getUrl = window.location;
+const baseUrl = getUrl .protocol + "//" + getUrl.host + "/" + getUrl.pathname.split('/')[1];
 
 export default function createExedaoMiddleware() {
   const exeDAOAddress = process.env.REACT_APP_CONTRACT_ADDRESS;
@@ -86,7 +88,7 @@ export default function createExedaoMiddleware() {
     return next => (action) => {
       const {web3, accounts, loggedIn, type} = action;
       if (type == WEB3_SET) {
-        const exedao = new ExeDAO(web3, accounts[0], exeDAOAddress);
+        const exedao = new ExeDAO(web3, accounts[0], exeDAOAddress, baseUrl);
         setExedao(exedao, dispatch)
           .then(() => loggedIn && apiLogin(exedao))
       }

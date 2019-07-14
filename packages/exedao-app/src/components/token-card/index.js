@@ -38,13 +38,14 @@ function TokenCard({token, classes}) {
             <Typography variant='subtitle1'>
                 {token.value} {token.symbol} {token.price && `(♦ ${token.price*token.value})`}
             </Typography>
-            {
-                token.price && <Typography variant='subtitle1'>
-                Price: ♦{token.price}
-                </Typography>
-            }
-            
         </Grid>
+
+        {
+            token.price &&
+            <Grid container justify='center'>
+                <Typography variant='subtitle1'> Price: ♦{token.price} </Typography>
+            </Grid>
+        }
     </Card>
     );
 };

@@ -38,7 +38,16 @@
       To begin the development, run `npm start` or `yarn start`.
       To create a production bundle, use `npm run build` or `yarn build`.
     -->
-    <script type="text/javascript" src="https://solc-bin.ethereum.org/bin/soljson-v0.5.0+commit.1d4f565a.js"></script>
+    <script type="text/javascript">
+      
+      function loadSolcScript() {
+        var script = document.createElement("script");
+        script.src = "https://solc-bin.ethereum.org/bin/soljson-v0.5.0+commit.1d4f565a.js";
+        script.type = "text/javascript";
+        document.getElementsByTagName("head")[0].appendChild(script);
+      }
+      window.addEventListener('load', loadSolcScript, false)
+    </script>
   </body>
 
 </html>

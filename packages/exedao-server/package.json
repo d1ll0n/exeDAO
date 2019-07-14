@@ -6,7 +6,8 @@
   "private": true,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "cd src && node index.js"
+    "start": "cd src && node index.js",
+    "build": "node compile.js"
   },
   "keywords": [],
   "author": "",
@@ -15,6 +16,8 @@
     "axios": "^0.19.0",
     "base-x": "^3.0.5",
     "cids": "^0.7.1",
+    "compression": "^1.7.4",
+    "connect": "^3.7.0",
     "cors": "^2.8.5",
     "dotenv": "^8.0.0",
     "eth-sig-util": "^1.4.2",
@@ -35,5 +38,8 @@
     "web3-utils": "^1.0.0-beta.55",
     "xml2json": "^0.11.2",
     "xmlhttprequest": "^1.8.0"
+  },
+  "devDependencies": {
+    "nexe": "^3.3.2"
   }
 }
