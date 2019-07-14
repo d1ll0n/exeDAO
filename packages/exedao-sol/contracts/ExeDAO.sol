@@ -49,7 +49,7 @@ contract ExeDAO is IExeDAO, Extendable, ExeDAOStorage {
 
   /**
    * @dev For buyer, cancel the offer and reclaim wei if a proposal has not been
-   * started by a daoist or has expired. For daoists, vote to accept the offer.
+   * started by a daoist or has expired. For daoists, vote to accept the offer. 
    */
   function executeApplication(address applicant) external {
     Indices.Index memory index = _applicationIndices[applicant];
