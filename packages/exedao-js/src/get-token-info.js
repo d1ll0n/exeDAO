@@ -96,8 +96,8 @@ const getTokenInfo = async (rpc, address) => ({
   address,
   name: await callGetterOrReturnFallback(rpc, address, getName, NAME_SIGNATURE, 'noname-' + address),
   symbol: await callGetterOrReturnFallback(rpc, address, getSymbol, SYMBOL_SIGNATURE, '000'),
-  ethPrice: (await getEthPriceOfToken(rpc, address, 18)),
-  image: await getImageData(address)
+  price: (await getEthPriceOfToken(rpc, address, 18)),
+  logo: await getImageData(address)
 });
 
 const getTokensInfo = async (rpc, tokenAddresses) => {

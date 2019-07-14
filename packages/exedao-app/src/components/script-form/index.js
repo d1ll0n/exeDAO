@@ -27,7 +27,7 @@ class ScriptForm extends Component {
     const {compiler, onSubmit} = this.props;
     const compilerOptions = generatePayload(value);
     const {bytecode} = await compiler.compile(compilerOptions)
-    onSubmit({bytecode: '0x' + bytecode, compilerOptions})
+    onSubmit({bytecode, compilerOptions})
     this.props.onClose();
     /* const { bytecode } = easySolc(
       'Payload',

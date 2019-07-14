@@ -35,8 +35,8 @@ export const getOpenProposals = () => {
   return async (dispatch, getState) => {
     const exedao = getState().exedao.exedao;
     let proposals = await exedao.getOpenProposals()
-    for (let prop of proposals) {
-      console.log(`CID: ${exedao.api.toCid(prop.metaHash)}`)
+    for (let proposal of proposals) {
+      if (proposal.metaHash) proposal.metaHashCid = exedao.hasher.shaToCid(proposal.metaHash)
     }
     console.log(proposals)
     dispatch({ type: ADD_PROPOSALS, proposals })
@@ -84,6 +84,7 @@ export const getProposalMetaData = (proposalHash, metaHash) => {
     const votesNeeded = util.votesNeeded(approvalRequirement, totalShares, proposal.votes);
     const {functionName, functionSelector, parsedArgs} = exedao.getFuncCallDetails(metadata.function, metadata.arguments);
     console.log(parsedArgs)
-    dispatch({type: SET_PROPOSAL_DETAILS, proposal: {proposalHash, votesNeeded, ...metadata, functionName, functionSelector, parsedArgs}});
+    const metaHashCid = exedao.hasher.shaToCid(metaHash)
+    dispatch({type: SET_PROPOSAL_DETAILS, proposal: {proposalHash, metaHashCid, votesNeeded, ...metadata, functionName, functionSelector, parsedArgs}});
   }
 }

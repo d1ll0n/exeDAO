@@ -23,7 +23,7 @@ contract Permissioned is IPermissioned, BaseDAO, PermissionedStorage {
     uint64 shares, uint64 proposalDuration,
     bytes4[] memory funcSigs, uint8[] memory requirements
   ) public payable BaseDAO(shares) {
-    require(funcSigs.length == requirements.length, "Inconsistent inputs");
+    require(funcSigs.length == requirements.length, "ExeDAO: Bad inputs");
     for (uint256 i = 0; i < funcSigs.length; i++) {
       uint8 approvalRequirement = requirements[i];
       require(
@@ -75,8 +75,8 @@ contract Permissioned is IPermissioned, BaseDAO, PermissionedStorage {
    * If approvalRequirement is 0, the function can not be called by anyone. If it is 255, it does not require approval.
    */
   function setApprovalRequirement(bytes4 funcSig, uint8 approvalRequirement) external {
-    require(funcSig != msg.sig, "ExeDAO: Can not modify requirement for setApprovalRequirement");
-    require(approvalRequirement < 101 || approvalRequirement == 255, "ExeDAO: Bad approvalRequirement");
+    require(funcSig != msg.sig, "ExeDAO: Can not modify requirement");
+    require(approvalRequirement < 101 || approvalRequirement == 255, "ExeDAO: Bad requirement");
     if (_voteAndContinue()) _approvalRequirements[funcSig] = approvalRequirement;
   }
 
@@ -98,7 +98,7 @@ contract Permissioned is IPermissioned, BaseDAO, PermissionedStorage {
   function submitWithMetaHash(bytes32 proposalHash, bytes32 metaHash) external returns(uint256 index) {
     uint64 shares = _getShares();
     Indices.Index memory _index = _proposalIndices[proposalHash];
-    require(!_index.exists, "ExeDAO: Proposal already exists");
+    require(!_index.exists, "ExeDAO: Proposal exists");
     index = _index.index;
     _submitOrVote(msg.sender, proposalHash, shares, _index);
     _proposalMetaHashes[proposalHash] = metaHash;
@@ -166,7 +166,11 @@ contract Permissioned is IPermissioned, BaseDAO, PermissionedStorage {
     shares = _getShares();
     uint64 totalNeeded = Proposals.votesRemaining(_totalShares, 0, approvalRequirement);
     if (!index.exists) approved = shares >= totalNeeded;
-    else approved = shares >= (totalNeeded - _proposals[index.index].votes);
+    else {
+      uint64 votes = _proposals[index.index].votes;
+      if (votes >= totalNeeded) approved = true;
+      else approved = shares >= (totalNeeded - votes);
+    }
   }
 
   /**

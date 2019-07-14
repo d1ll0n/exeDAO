@@ -9,5 +9,5 @@ contract IExtendable is IPermissioned {
   function getExtensionFor(bytes4 funcSig) external view returns (ExeLib.Extension memory extension);
   function getExtensions() external view returns (ExeLib.Extension[] memory);
   function removeExtension(uint256 extIndex) external;
-  function addExtension(ExeLib.Extension calldata extension) external;
+  function addExtension(ExeLib.Extension memory extension) public;
 }

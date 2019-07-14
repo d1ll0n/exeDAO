@@ -28,7 +28,7 @@ const styles = theme => ({
   },
   overview: {
     width: 600,
-    height: 400,
+    height: 500,
     padding: 25
   },
   base: {

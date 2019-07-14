@@ -18,11 +18,18 @@ export const getPayloadSource = (script) => (
 `pragma solidity 0.5.0;
 
 contract Payload {
-    event TestEvent(uint a);
+    event Added(uint c);
+    
     function () external payable {
-        emit TestEvent(5);
+        emit Added(12);
         ${script.replace(/\n/g, '\n\t\t')}
     }
 }`);
+
+/* event TestEvent(uint a);
+    function () external payable {
+        emit TestEvent(5);
+        ${script.replace(/\n/g, '\n\t\t')}
+    } */
 
 export default generatePayload;

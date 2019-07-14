@@ -14,7 +14,7 @@ const styles = (theme) => ({
     marginTop: 10
   },
   tokenCard: {
-      height: 100,
+      height: 150,
       width: 250,
       padding: 10,
       boxShadow: ' 0px 1px 3px 0px #D4D4D5, 0px 0px 0px 1px #D4D4D5',

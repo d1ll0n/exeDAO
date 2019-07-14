@@ -2,16 +2,12 @@
   "name": "exedao-app",
   "version": "1.0.0",
   "private": true,
-  "homepage": "https://create-react-app-redux.now.sh",
   "scripts": {
-    "deploy": "now && now alias",
     "start": "npx --max_old_space_size=4096 react-scripts start",
-    "now-start": "serve -s ./build",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject",
-    "precommit": "pretty-quick --staged",
-    "sol:build": "cd ./src/sol && node compile && cd ../.."
+    "precommit": "pretty-quick --staged"
   },
   "devDependencies": {
     "fs-extra": "^8.0.1",

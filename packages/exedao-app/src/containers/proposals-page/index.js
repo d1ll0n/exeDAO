@@ -39,12 +39,15 @@ class Proposals extends Component {
     this.setState({open: false});
   }
 
-  executeProposal = () => {
+  executeProposal = async () => {
     const {selected} = this.state;
     const {exedao, proposals} = this.props;
     const proposal = selected && proposals.filter(p => p.proposalHash == selected)[0];
+    console.log(proposal)
+    // 0x5cffd844df78b7378470b9d98a1f981dd6075a1d67ea862f10a9fa37c0856349
     if (proposal.functionName == 'safeExecute') {
-      exedao.safeExecute(proposal.arguments[0], 250000)
+      const receipt = await exedao.safeExecute(proposal.arguments[0], 250000)
+      console.log(receipt)
     }
     else exedao.sendProposal(proposal.function, 250000, 0, ...proposal.arguments).then(console.log)
   }
