@@ -22,6 +22,7 @@
     "dotenv": "^8.0.0",
     "eth-sig-util": "^1.4.2",
     "exedao-js": "^1.0.0",
+    "express-http-to-https": "^1.1.4",
     "form-data": "^2.3.3",
     "ganache-cli": "^6.4.3",
     "jsonwebtoken": "^8.5.1",

@@ -2,7 +2,6 @@ require('dotenv').config();
 const Web3 = require('web3');
 const {ExeDAO} = require('exedao-js');
 const Temporal = require('./lib/temporal');
-// const rpcCall = require('kool-makerpccall');
 
 let {contractAddress, ethnet, temporaluser, temporalpass} = process.env;
 const provider = ethnet == 'ganache'
@@ -20,8 +19,8 @@ module.exports = async () => {
     if (ethnet == 'ganache') {
       const erc20 = await require('../test/erc20')(web3, accounts[1])
       await erc20.methods.getTokens(5000).send({from: accounts[1], gas: 450000})
-      // await erc20.methods.approve(exedao.contract._address, 2500).send({from: accounts[1], gas: 450000})
-      // console.log(`${accounts[1]} has 5000 tokens and has approved exeDAO to withdraw`)
+      await erc20.methods.approve(exedao.contract._address, 2500).send({from: accounts[1], gas: 450000})
+      console.log(`${accounts[1]} has 5000 tokens and has approved exeDAO to withdraw`)
       console.log(`Deployed ERC20 Token: ${erc20._address}`)
     }
   }

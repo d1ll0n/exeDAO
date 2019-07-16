@@ -1,57 +1,51 @@
 const bodyParser = require('body-parser');
 const cors = require('cors')
 const express = require('express')
-const multihashes = require('multihashes');
-const mhA = require('multihashing-async')
-const CID = require('cids');
+const https = require('https')
 const fs = require('fs');
 const compress = require('compression')
 const path = require('path');
-const {putFileSuccess, fileNotFound} = require('../lib/responses');
-const {util} = require('exedao-js')
-const detJson = util.deterministicJSON;
+
+const {detJson, toCid} = require('../lib/files')
+const {getFile, putApplication, putProposal} = require('./routes')
+
 const filesPath = path.join(__dirname, '..', 'data');
 if (!fs.existsSync(filesPath)) fs.mkdirSync(filesPath);
-const toPath = proposalHash => path.join(filesPath, proposalHash.toString('hex'));
 
-const toCid = async (hash) => {
-  const buf = Buffer.from(hash.slice(2), 'hex');
-  // mhA()
-  const mh = multihashes.encode(buf, 'sha3-256')
-  const cid = new CID(1, 'raw', mh, 'base32');
-  return cid.toBaseEncodedString();
-}
+const {certPath, keyPath, PORT} = process.env;
+
+const toPath = fileHash => path.join(filesPath, fileHash.toString('hex'));
+const sendIndex = (_, res) => res.sendFile(path.join(__dirname, './public/index.html'))
 
 module.exports = class HttpServer {
-  constructor(app, middleware) {
+  constructor(app, middleware, exedao, temporal, db) {
     this.app = app;
-    app.use(compress())
-    app.use(express.static('public'))
-    app.use('/static', express.static(path.join(__dirname, 'public', 'static')))
-    app.use(bodyParser.urlencoded({ extended: true }));
-    app.use(bodyParser.json());
-    app.use(cors())
-    app.get('/', (req, res) => res.sendFile(path.join(__dirname, './public/index.html')))
-    app.post('/login', (req, res) => middleware.handleLogin(req, res));
-    app.post('/putApplication', (req, res) => this.putApplication(req, res))
-    app.use('/dao', (req, res, next) => middleware.checkToken(req, res, next));
-    app.post('/dao/refresh', (req, res) => middleware.handleRefresh(req, res));
-    // app.get('/authed/proposalMeta/:proposalMetaHash');
-    app.post('/dao/putProposal', (req, res) => this.putProposal(req, res));
-    app.get('/dao/file/:hash', (req, res) => this.getFile(req, res)); // for membersOnly data
-  }
-
-  async start({exedao, temporal, db}) {
-    const port = process.env.PORT || 8000;
-    this.app.listen(port, () => console.log(`Server is listening on port: ${port}`));
+    this.authMiddleware = middleware
+    this.getFile = getFile.bind(this)
+    this.putApplication = putApplication.bind(this)
+    this.putProposal = putProposal.bind(this)
     this.exedao = exedao;
     this.temporal = temporal;
     this.db = db;
   }
 
-  async saveFile(filePath, file, membersOnly) {
+  async readFile(fileHash) {
+    let filePath = toPath(fileHash);
+    if (!fs.existsSync(filePath)) {
+      let cidHash = await toCid(fileHash);
+      filePath = toPath(cidHash)
+      if (!fs.existsSync(filePath)) throw new Error('File not found')
+    }
+    return fs.readFileSync(filePath, 'utf8')
+  }
+
+  async saveFile(data, membersOnly) {
+    const file = detJson(data);
     if (file.length > 51200) throw new Error('File too large. Maximum size: 50kb')
-    membersOnly = membersOnly == 'true';
+    const metahash = this.exedao.hasher.jsonSha3(data)
+    const fileHash = await toCid(metahash);
+    const filePath = toPath(fileHash);
+    membersOnly = membersOnly == 'true' || membersOnly == true;
     if (fs.existsSync(filePath)) throw new Error('File already uploaded.')
     fs.writeFileSync(filePath, Buffer.from(file));
     if (!membersOnly) {
@@ -61,54 +55,48 @@ module.exports = class HttpServer {
       console.log('temporal response -- ', ret)
       console.log(`https://gateway.temporal.cloud/ipfs/${ret}`)
     }
-    return true;
+    return fileHash;
   }
 
-  getFile(req, res) {
-    const {hash} = req.params;
-    console.log(`got request /dao/file/${hash}`)
-    const filePath = toPath(hash);
-    if (!fs.existsSync(filePath)) return res.status(404).json(fileNotFound);
-    const file = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-    return res.json({ data: file })
+  addAuthedRoutes() {
+    this.app.post('/login', (req, res) => this.authMiddleware.handleLogin(req, res));
+    this.app.post('/dao/refresh', (req, res) => this.authMiddleware.handleRefresh(req, res));
+    this.app.post('/dao/putProposal', (req, res) => this.putProposal(req, res));
+    this.app.get('/dao/file/:hash', (req, res) => this.getFile(req, res)); // for membersOnly data
   }
 
-  putProposal(req, res) {
-    const {proposalHash, data, membersOnly, extension} = req.body;
-    console.log(`got request /dao/putProposal`)
-    this.exedao.verifyProposalMeta(proposalHash, data, extension).then(async () => {
-      const file = detJson(data);
-      const metahash = this.exedao.hasher.jsonSha3(data)
-      const fileHash = await toCid(metahash);
-      const filePath = toPath(fileHash);
-      if (extension && data.function == 'addExtension') {
-        const extFile = detJson(extension);
-        const extHash = await mh(extFile, 'sha3-256');
-        const extPath = toPath(extHash);
-        await this.saveFile(extPath, extFile, membersOnly);
-      }
-      await this.saveFile(filePath, file, membersOnly);
-      return res.json({data: putFileSuccess(fileHash)});
-    }).catch((err) => {
-      console.error(err)
-      return res.status(400).json({ message: err.message });
-    });
+  addMiddleware() {
+    this.app.use(compress())
+    this.app.use(bodyParser.urlencoded({ extended: true }));
+    this.app.use(bodyParser.json());
+    this.app.use(cors())
+    this.app.use('/dao', (req, res, next) => this.authMiddleware.checkToken(req, res, next));
   }
 
-  putApplication(req, res) {
-    const {applicant, application} = req.body;
-    console.log(`got request /putApplication`)
-    this.exedao.verifyApplication(applicant, application).then(async () => {
-      const file = detJson(application);
-      const metahash = this.exedao.hasher.jsonSha3(application)
-      const fileHash = await toCid(metahash);
-      const filePath = toPath(fileHash);
-      await this.saveFile(filePath, file, false);
-      return res.json(putFileSuccess(fileHash));
-    }).catch((err) => {
-      console.error(err)
-      return res.status(400).json({ message: err.message });
-    });
+  addStaticRoutes() {
+    this.app.get('/', sendIndex)
+    this.app.use(express.static('public'))
+    this.app.use('/static', express.static(path.join(__dirname, 'public', 'static')))
+  }
+
+  setup() {
+    this.addStaticRoutes()
+    this.addMiddleware()
+    this.addAuthedRoutes()
+    this.app.post('/putApplication', (req, res) => this.putApplication(req, res))
+    this.app.get('*', sendIndex)
+  }
+
+  async start() {
+    this.setup()
+    if (PORT == 443 && certPath && keyPath) {
+      this.server = https.createServer({
+        key: fs.readFileSync(keyPath, 'utf8'),
+        cert: fs.readFileSync(certPath, 'utf8')
+      }, this.app);
+      this.server.listen(443, () => console.log(`Server is listening on port: ${port}`))
+    }
+    else this.app.listen(port, () => console.log(`Server is listening on port: ${port}`));
   }
 }
 
