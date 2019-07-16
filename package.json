@@ -1,5 +1,5 @@
 {
-  "name": "EXEdao-private",
+  "name": "exeDAO",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -9,13 +9,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/d1ll0n/EXEdao-private.git"
+    "url": "git+https://github.com/d1ll0n/exeDAO.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/d1ll0n/EXEdao-private/issues"
+    "url": "https://github.com/d1ll0n/exeDAO/issues"
   },
   "private": true,
   "workspaces": [
@@ -27,7 +27,7 @@
     "packages/exedao-server",
     "packages/exedao-sol"
   ],
-  "homepage": "https://github.com/d1ll0n/EXEdao-private#readme",
+  "homepage": "https://github.com/d1ll0n/exeDAO#readme",
   "dependencies": {
     "lerna": "^3.14.1"
   }
