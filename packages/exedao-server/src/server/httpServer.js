@@ -94,9 +94,9 @@ module.exports = class HttpServer {
         key: fs.readFileSync(keyPath, 'utf8'),
         cert: fs.readFileSync(certPath, 'utf8')
       }, this.app);
-      this.server.listen(443, () => console.log(`Server is listening on port: ${port}`))
+      this.server.listen(443, () => console.log(`Server is listening on port: ${PORT}`))
     }
-    else this.app.listen(port, () => console.log(`Server is listening on port: ${port}`));
+    else this.app.listen(PORT, () => console.log(`Server is listening on port: ${PORT}`));
   }
 }
 
