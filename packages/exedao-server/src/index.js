@@ -1,3 +1,4 @@
+require('dotenv').config();
 const {startServer} = require('./server');
 const setup = require('./setup');
 const db = require('./lib/db');

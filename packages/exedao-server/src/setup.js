@@ -1,4 +1,3 @@
-require('dotenv').config();
 const Web3 = require('web3');
 const {ExeDAO} = require('exedao-js');
 const Temporal = require('./lib/temporal');
