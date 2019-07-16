@@ -8,6 +8,7 @@ const API = require('./util/api');
 const {functionDescriptions} = require('./defaults');
 const {getTokenInfo, getTokensInfo} = require('./get-token-info')
 const TokenGetter = require('./util/TokenGetter')
+const {stripDecimals} = require('./util')
 
 module.exports = class ExeDAO extends Contract {
   constructor(web3, userAddress, contract, apiUrl, rpcUrl) {
@@ -178,6 +179,8 @@ module.exports = class ExeDAO extends Contract {
       .then(tokens => Promise.all(tokens.map(
         async (token) => {
           const info = await this.getTokenInfo(token.tokenAddress);
+          const {decimals} = info;
+          if (decimals) token.value = stripDecimals(token.value, decimals) / 1e18
           return {...token, ...info}
         }
       )));

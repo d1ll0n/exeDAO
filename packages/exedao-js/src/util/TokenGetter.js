@@ -1,6 +1,11 @@
-const { toAscii } = require('web3-utils');
+const { toAscii, toBN, } = require('web3-utils');
+const Rational = require('tough-rational');
 const uniswapFactory = require('../../build/uniswapFactory');
 const uniswapExchange = require('../../build/uniswapExchange');
+
+Rational.useFallback(true);
+
+const {stripDecimals} = require('./index')
 
 module.exports = class TokenGetter {
   constructor(web3) {
@@ -15,11 +20,17 @@ module.exports = class TokenGetter {
     const token = new this.web3.eth.Contract(uniswapExchange, tokenAddress);
     const name = toAscii(await token.methods.name().call().catch(e => '')).replace(/x00/g, '');
     const symbol = toAscii(await token.methods.symbol().call().catch(e => '')).replace(/x00/g, '');
-    // const decimals = await exchange.methods.decimals().call();
+    const decimals = Rational(await token.methods.decimals().call().catch(e => 0))
+    console.log(decimals)
     let price = await exchange.methods.getEthToTokenInputPrice('1000000000000000000').call();
     const logo = 'https://raw.githubusercontent.com/TrustWallet/tokens/master/tokens/' + tokenAddress.toLowerCase() + '.png';
-    price = (price / 1000000000000000000).toFixed(4);
+    // price = stripDecimals((price / 1000000000000000000), decimals || 1e18);
+    console.log(price)
+    price = +stripDecimals(Rational(1).div(Rational((price).substr(0, 66)).div('1000000000000000000')).toDecimal(), decimals || 1e18);
+    price = price.toFixed(4)
+    console.log(price)
+    console.log('price', price)
     console.log({ logo, name, symbol, price })
-    return { logo, name, symbol, price }
+    return { logo, name, symbol, price, decimals }
   }
 }

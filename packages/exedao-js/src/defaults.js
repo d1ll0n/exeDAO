@@ -1,5 +1,10 @@
-const { AbiCoder } = require('web3-eth-abi');
-const coder = new AbiCoder();
+let coder
+try {
+  const { AbiCoder } = require('web3-eth-abi');
+  coder = new AbiCoder();
+} catch(e) {
+  coder = require('web3-eth-abi')
+}
 
 const defaultFunctions = [
   ['transferEther(address,uint256)', '66', 'Transfer ether from the contract'],
@@ -36,8 +41,8 @@ for (let req of defaultFunctions) {
 30000
 ["0xf024a95a","0x345a22cd","0xe033f73c","0x53f45e9c","0xb920ef71","0xdaa08539","0x701c3c28","0x02e4879d","0xd48bfca7","0x52a23bbb","0xf5537ede","0x4ec109f4"]
 ["66","66","51","75","66","66","75","66","33","66","66","255"] */
-console.log(JSON.stringify(signatures))
-console.log(JSON.stringify(requirements))
+// console.log(JSON.stringify(signatures))
+// console.log(JSON.stringify(requirements))
 // console.log(coder.encodeParameters(['uint64', 'uint64', 'bytes4[]', 'uint8[]'], [10000, 50000, signatures, requirements]))
 
 const shares = 1000;

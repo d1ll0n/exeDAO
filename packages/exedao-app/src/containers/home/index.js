@@ -47,7 +47,14 @@ class Home extends Component {
 							<img src={ExedaoLogo} style={{ width: 200, paddingBottom: 15 }} />
 						</Grid>
 						<Grid item style={{width: '100%', paddingLeft: 10}}>
-							<Typography style={{width: '100%', textAlign: 'center', marginBottom: 15}} variant='subtitle1' gutterBottom>{exedaoAddress}</Typography>
+							<a target='_blank' href={`https://etherscan.io/address/${exedaoAddress}`}>
+								<Typography
+									style={{width: '100%', textAlign: 'center', marginBottom: 15}}
+									variant='subtitle1' gutterBottom
+								>
+									{exedaoAddress}
+								</Typography>
+							</a>
 							<Grid container direction='row' justify='space-evenly'>
 								<Grid item sm={5}>
 									<Typography variant = "h6">Ether Balance: { balance/1e18 }</Typography>

@@ -2,7 +2,13 @@
 
 const rpcCall = require('kool-makerpccall');
 const PromiseQueue = require('promiseq');
-const abi = require('web3-eth-abi').AbiCoder();
+let abi
+try {
+  const { AbiCoder } = require('web3-eth-abi');
+  abi = new AbiCoder();
+} catch(e) {
+  abi = require('web3-eth-abi')
+}
 const addHexPrefix = (s) => s.substr(0, 2) === '0x' ? s : '0x' + s;
 const {
   toBN,

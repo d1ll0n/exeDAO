@@ -6,10 +6,12 @@ export const WEB3_CANCEL = 'web3/CANCEL'
 
 const defaultWeb3Url = process.env.REACT_APP_WEB3_DEFAULT;
 
+const web3Provider = (defaultWeb3Url.indexOf('wss') >= 0) ? new Web3.providers.WebsocketProvider(defaultWeb3Url) : defaultWeb3Url
+
 const initialState = {
     accounts: [],
     loggedIn: window.web3 && window.web3.eth.accountsfalse,
-    web3: window.web3 || new Web3(defaultWeb3Url),
+    web3: window.web3 || new Web3(web3Provider),
     pending: false,
 }
 

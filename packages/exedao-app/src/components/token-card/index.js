@@ -29,9 +29,9 @@ function TokenCard({token, classes}) {
                     && <Typography variant = "subtitle1"> {token.name} </Typography>
                 }
                 
-                <Typography variant = "caption">
-                    {token.tokenAddress}
-                </Typography>
+                <a target='_blank' href={`https://etherscan.io/address/${token.tokenAddress}`}>
+                    EtherScan
+                </a>
             </Grid>
         </Grid>
         <Grid container justify='center' className={classes.tokenPrice}>
