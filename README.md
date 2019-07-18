@@ -1,3 +1,3 @@
-lets ride
+exeDAO is a configurable multi-signature framework that enables secure smart contract extensibility.
 
-testing some shit rq
+Documentation coming soon...
