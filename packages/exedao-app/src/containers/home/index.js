@@ -14,6 +14,7 @@ import TokenCard from '../../components/token-card'
 import BurnModal from '../../components/burn-modal'
 
 const totalValue = (ether, tokens) => tokens.reduce((value, token) => value + (token.price || 0) * token.value, ether/1e18);
+const toTruncated = num => Number(Number(num).toFixed(3).toString())
 
 class Home extends Component {
 	state = {showBurn: false}
@@ -57,7 +58,7 @@ class Home extends Component {
 							</a>
 							<Grid container direction='row' justify='space-evenly'>
 								<Grid item sm={5}>
-									<Typography variant = "h6">Ether Balance: { balance/1e18 }</Typography>
+									<Typography variant = "h6">Ether Balance: Ξ{ toTruncated(balance/1e18) }</Typography>
 								</Grid>
 								<Grid item sm={5}>
 									<Typography variant = "h6">Total Shares: { totalShares }</Typography>
@@ -82,7 +83,7 @@ class Home extends Component {
 							</Grid> : ''
 						}
 						<Grid item style={{marginTop: 30}}>
-							<Typography variant = "h6">Total Value: ♦{totalEth}</Typography>
+							<Typography variant = "h6">Total Value: Ξ{toTruncated(totalEth)}</Typography>
 						</Grid>
 						<Grid item style={{marginTop: 30}}>
 							{isDaoist ? this.renderBurnButton() : this.renderApplyButton()}

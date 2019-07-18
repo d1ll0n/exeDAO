@@ -35,6 +35,7 @@ export const getOpenProposals = () => {
   return async (dispatch, getState) => {
     const exedao = getState().exedao.exedao;
     let proposals = await exedao.getOpenProposals()
+    console.log(proposals)
     for (let proposal of proposals) {
       if (proposal.metaHash) proposal.metaHashCid = exedao.hasher.shaToCid(proposal.metaHash)
     }

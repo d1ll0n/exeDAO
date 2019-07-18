@@ -7,8 +7,8 @@
       content="width=device-width,initial-scale=1,shrink-to-fit=no"
     />
     <meta name="theme-color" content="#000000" />
-    <link rel="manifest" href="/public/manifest.json" />
-    <link rel="shortcut icon" href="/public/favicon.ico" />
+    <link rel="manifest" href="/static/manifest.json" />
+    <link rel="shortcut icon" href="/static/favicon.ico" />
     <title>exeDAO</title>
     <link href="/static/css/2.db83da85.chunk.css" rel="stylesheet" />
   </head>
@@ -32,24 +32,24 @@
             i < n.length;
             i++
           )
-            (t = n[i]), l[t] && a.push(l[t][0]), (l[t] = 0);
+            (t = n[i]), f[t] && a.push(f[t][0]), (f[t] = 0);
           for (r in o)
             Object.prototype.hasOwnProperty.call(o, r) && (c[r] = o[r]);
           for (d && d(e); a.length; ) a.shift()();
-          return p.push.apply(p, u || []), f();
+          return p.push.apply(p, u || []), l();
         }
-        function f() {
+        function l() {
           for (var e, r = 0; r < p.length; r++) {
             for (var t = p[r], n = !0, o = 1; o < t.length; o++) {
               var u = t[o];
-              0 !== l[u] && (n = !1);
+              0 !== f[u] && (n = !1);
             }
             n && (p.splice(r--, 1), (e = s((s.s = t[0]))));
           }
           return e;
         }
         var t = {},
-          l = { 1: 0 },
+          f = { 1: 0 },
           p = [];
         function s(e) {
           if (t[e]) return t[e].exports;
@@ -58,12 +58,12 @@
         }
         (s.e = function(u) {
           var e = [],
-            t = l[u];
+            t = f[u];
           if (0 !== t)
             if (t) e.push(t[2]);
             else {
               var r = new Promise(function(e, r) {
-                t = l[u] = [e, r];
+                t = f[u] = [e, r];
               });
               e.push((t[2] = r));
               var n,
@@ -76,11 +76,11 @@
                   "static/js/" +
                   ({}[u] || u) +
                   "." +
-                  { 3: "7f76b318", 4: "2605b277", 5: "c23554f5" }[u] +
+                  { 3: "1ca120ae", 4: "2605b277", 5: "c23554f5" }[u] +
                   ".chunk.js"),
                 (n = function(e) {
                   (i.onerror = i.onload = null), clearTimeout(a);
-                  var r = l[u];
+                  var r = f[u];
                   if (0 !== r) {
                     if (r) {
                       var t = e && ("load" === e.type ? "missing" : e.type),
@@ -96,7 +96,7 @@
                         );
                       (o.type = t), (o.request = n), r[1](o);
                     }
-                    l[u] = void 0;
+                    f[u] = void 0;
                   }
                 });
               var a = setTimeout(function() {
@@ -160,9 +160,9 @@
         (r.push = e), (r = r.slice());
         for (var o = 0; o < r.length; o++) e(r[o]);
         var d = n;
-        f();
+        l();
       })([]);</script
-    ><script src="/static/js/2.64d78031.chunk.js"></script
-    ><script src="/static/js/main.0ab7519a.chunk.js"></script>
+    ><script src="/static/js/2.121c9df3.chunk.js"></script
+    ><script src="/static/js/main.13e17efb.chunk.js"></script>
   </body>
 </html>

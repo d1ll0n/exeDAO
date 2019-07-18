@@ -8,7 +8,7 @@ export const requestWeb3 = () => dispatch => dispatch({type: WEB3_REQUEST})
 
 export const initWeb3 = () => {
     return async (dispatch) => {
-        const web3 = new Web3(window.web3 && window.web3.currentProvider || web3Provider);
+        const web3 = new Web3((window.web3 && window.web3.currentProvider) || web3Provider);
         const accounts = await web3.eth.getAccounts()
         dispatch({type: WEB3_SET, web3, accounts})
     }

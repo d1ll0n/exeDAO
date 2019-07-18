@@ -193,7 +193,11 @@ module.exports = class ExeDAO extends Contract {
   getApprovalRequirements(funcsigs) { return this.call('getApprovalRequirements', funcsigs); }
   
   getProposal(proposalHash) { return this.call('getProposal', proposalHash); }
-  getOpenProposals() { return this.call('getOpenProposals'); }
+  getOpenProposals() { return this.call('getOpenProposals')
+    .then(proposals =>
+      proposals.filter(proposal =>
+        proposal.metaHash != '0x0000000000000000000000000000000000000000000000000000000000000000' &&
+        proposal.proposalHash != '0x0000000000000000000000000000000000000000000000000000000000000000')); }
   getProposalMetaHash(proposalHash) { return this.call('getProposalMetaHash', proposalHash); }
   
   getApplication(address) {

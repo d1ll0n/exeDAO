@@ -9,10 +9,12 @@ import {
     CardMedia,
   } from '@material-ui/core';
 
+const toTruncated = num => Number(Number(num).toFixed(3).toString())
+
 function TokenCard({token, classes}) {
     if (!token.logo && !token.price) return <Card className={classes.tokenCard}>
         <Typography variant="caption">Address: {token.tokenAddress}</Typography>
-        <Typography variant="caption">Balance: {token.value}</Typography>
+        <Typography variant="caption">Balance: {toTruncated(token.value)}</Typography>
     </Card>
     return (
       <Card className = { classes.tokenCard }>
@@ -36,14 +38,14 @@ function TokenCard({token, classes}) {
         </Grid>
         <Grid container justify='center' className={classes.tokenPrice}>
             <Typography variant='subtitle1'>
-                {token.value} {token.symbol} {token.price && `(♦ ${token.price*token.value})`}
+                {toTruncated(token.value)} {token.symbol} {token.price && `(Ξ ${toTruncated(token.price*token.value)})`}
             </Typography>
         </Grid>
 
         {
             token.price &&
             <Grid container justify='center'>
-                <Typography variant='subtitle1'> Price: ♦{token.price} </Typography>
+                <Typography variant='subtitle1'> Price: Ξ{toTruncated(token.price)} </Typography>
             </Grid>
         }
     </Card>

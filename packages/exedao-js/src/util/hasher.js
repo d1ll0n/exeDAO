@@ -33,7 +33,7 @@ class Hasher {
   }
 
   shaToCid(hash) {
-    return this.toCid(this.toMh(hash))
+    return this.toCid(this.toMh(hash.slice(2)).toString('hex'))
   }
 
   hash(encodedCall) {

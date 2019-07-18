@@ -38,6 +38,7 @@ export default function createExedaoMiddleware() {
   async function setExedao(exedao, dispatch) {
     console.log('Adding proposal listener')
     await exedao.init();
+    console.log(exedao)
     dispatch({type: EXEDAO_SET, exedao});
    /*  const applications = await exedao.getOpenApplications();
     dispatch({type: ADD_APPLICATIONS, applications})
