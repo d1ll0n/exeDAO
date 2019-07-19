@@ -38,7 +38,10 @@ module.exports = class ExeDAO extends Contract {
     await this.updateRequirements();
     this.totalShares = await this.getTotalShares();
     this.ownedShares = this.address ? await this.getShares(this.address).catch(() => 0) : 0;
-    this.tokens = await this.getTokensWithInfo() //this.getTokens();
+    this.tokens = await this.getTokensWithInfo().catch(err => {
+      console.error(err)
+      return []
+    }) //this.getTokens();
     this.balance = await this.web3.eth.getBalance(this.contract._address);
     this.daoists = await this.getDaoists();
   }
