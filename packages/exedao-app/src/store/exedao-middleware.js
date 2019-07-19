@@ -29,7 +29,9 @@ function execute(action, next, dispatch) {
 }
 */
 const getUrl = window.location;
-const baseUrl = getUrl .protocol + "//" + getUrl.host + "/" + getUrl.pathname.split('/')[1];
+const baseUrl = getUrl .protocol + "//" + getUrl.host + '/'
+
+console.log(baseUrl)
 
 export default function createExedaoMiddleware() {
   const exeDAOAddress = process.env.REACT_APP_CONTRACT_ADDRESS;
