@@ -12,7 +12,7 @@ const {getFile, putApplication, putProposal} = require('./routes')
 const filesPath = path.join(__dirname, '..', 'data');
 if (!fs.existsSync(filesPath)) fs.mkdirSync(filesPath);
 
-const {certPath, keyPath, PORT} = process.env;
+const {certPath, keyPath, PORT = 8080} = process.env;
 
 const toPath = fileHash => path.join(filesPath, fileHash.toString('hex'));
 const sendIndex = (_, res) => res.sendFile(path.join(__dirname, './public/index.html'))

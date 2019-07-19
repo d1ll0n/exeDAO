@@ -41,7 +41,7 @@ class Home extends Component {
 			<Card className={classes.overview}>
 				{<BurnModal onClose={this.toggleShowBurn} open={this.state.showBurn} />}
 					<Grid
-						container direction="column"
+						container direction="column" 
 						justify='center' alignItems='center'
 					>
 						<Grid item>
@@ -93,9 +93,9 @@ class Home extends Component {
 		);
 	}
 
-	renderTokens = () => <Grid container direction='column' wrap='wrap' justify='space-between' alignItems='center'>
+	renderTokens = () => <Grid container direction='row' wrap='wrap' justify='space-between'>
 		{
-			this.props.tokens.map((token, i) => <TokenCard token={token} key={i}/>)
+			this.props.tokens.map((token, i) => <Grid item><TokenCard token={token} key={i}/></Grid>)
 		}
 	</Grid>
 
