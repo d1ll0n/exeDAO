@@ -4,8 +4,8 @@ self.__precacheManifest = [
     "url": "/static/media/exedao-logo.7274431c.svg"
   },
   {
-    "revision": "a0e54a2957258a2dc7be",
-    "url": "/static/js/main.f5c9c721.chunk.js"
+    "revision": "921850ff92816d210a89",
+    "url": "/static/js/main.2140bb7c.chunk.js"
   },
   {
     "revision": "dc3e3ae82d0dadbfaef310093e42c519",
@@ -56,7 +56,7 @@ self.__precacheManifest = [
     "url": "/static/css/2.db83da85.chunk.css"
   },
   {
-    "revision": "cee1b9be5628173356576f31722e053f",
+    "revision": "017c7f961a5534fe76e15d8de1ea08f2",
     "url": "/index.html"
   }
 ];
